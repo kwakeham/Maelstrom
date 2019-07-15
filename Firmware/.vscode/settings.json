@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "boards.h": "c",
+        "pca10040.h": "c",
+        "hardfault.h": "c",
+        "app_timer.h": "c",
+        "app_util.h": "c",
+        "sdk_config.h": "c",
+        "ant_parameters.h": "c"
+    }
+}

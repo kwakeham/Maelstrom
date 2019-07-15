@@ -54,72 +54,33 @@
 #include "nrf.h"
 #include "app_error.h"
 #include "app_timer.h"
-#include "bsp.h"
+#include "app_button.h"
+#include "app_gpiote.h"
 #include "boards.h"
-#include "hardfault.h"
-#include "nrf_sdh.h"
-#include "nrf_sdh_ant.h"
-#include "nrf_pwr_mgmt.h"
-#include "antDI2Master.h"
-#include "di2_btn.h"
-#include "mpos.h"
+#include "nrf_delay.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
-#define BT1_LONG_PUSH BSP_EVENT_KEY_4
-#define BT3_LONG_PUSH  BSP_EVENT_KEY_5
-
-// APP_TIMER_DEF(m_button_action);
-// #define BUTTON_STATE_POLL_INTERVAL_MS  100UL
-// #define LONG_PRESS2(MS)    (uint32_t)(MS)/BUTTON_STATE_POLL_INTERVAL_MS 
-
-/**@brief Function for the Timer and BSP initialization.
- */
-// static void utils_setup(void)
-// {
-//     ret_code_t err_code = app_timer_init();
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS,
-//                         ant_message_types_master_bsp_evt_handler);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_event_to_button_action_assign(BSP_BOARD_BUTTON_1, BSP_BUTTON_ACTION_PUSH, BSP_EVENT_NOTHING);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_event_to_button_action_assign(BSP_BOARD_BUTTON_1, BSP_BUTTON_ACTION_RELEASE, BSP_EVENT_KEY_1);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_event_to_button_action_assign(BSP_BOARD_BUTTON_3, BSP_BUTTON_ACTION_PUSH, BSP_EVENT_NOTHING);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_event_to_button_action_assign(BSP_BOARD_BUTTON_3, BSP_BUTTON_ACTION_RELEASE, BSP_EVENT_KEY_3);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_event_to_button_action_assign(BSP_BOARD_BUTTON_1, BSP_BUTTON_ACTION_LONG_PUSH, BT1_LONG_PUSH);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = bsp_event_to_button_action_assign(BSP_BOARD_BUTTON_3, BSP_BUTTON_ACTION_LONG_PUSH, BT3_LONG_PUSH);
-//     APP_ERROR_CHECK(err_code);
-
-//     err_code = nrf_pwr_mgmt_init();
-//     APP_ERROR_CHECK(err_code);
-// }
+#define APP_TIMER_PRESCALER             0  // Value of the RTC1 PRESCALER register.
+#define APP_TIMER_MAX_TIMERS            1  // Maximum number of simultaneously created timers. 
+#define APP_TIMER_OP_QUEUE_SIZE         2  // Size of timer operation queues. 
+#define BUTTON_DEBOUNCE_DELAY			50 // Delay from a GPIOTE event until a button is reported as pushed. 
+#define APP_GPIOTE_MAX_USERS            1  // Maximum number of users of the GPIOTE handler. 
 
 /**@brief Function for ANT stack initialization.
  */
-static void softdevice_setup(void)
-{
-    ret_code_t err_code = nrf_sdh_enable_request();
-    APP_ERROR_CHECK(err_code);
+// static void softdevice_setup(void)
+// {
+//     ret_code_t err_code = nrf_sdh_enable_request();
+//     APP_ERROR_CHECK(err_code);
 
-    ASSERT(nrf_sdh_is_enabled());
+//     ASSERT(nrf_sdh_is_enabled());
 
-    err_code = nrf_sdh_ant_enable();
-    APP_ERROR_CHECK(err_code);
-}
+//     err_code = nrf_sdh_ant_enable();
+//     APP_ERROR_CHECK(err_code);
+// }
 
 /**
  *@brief Function for initializing logging.
@@ -132,75 +93,192 @@ static void log_init(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 }
 
-// void test_callback(di2btn_event_t event_list)
+void init_clock()
+{
+    NRF_CLOCK->LFCLKSRC            = (CLOCK_LFCLKSRC_SRC_Xtal << CLOCK_LFCLKSRC_SRC_Pos);
+    NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
+    NRF_CLOCK->TASKS_LFCLKSTART    = 1;
+    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0); // Wait for clock to start
+}	
+
+void init_leds()
+{
+    nrf_gpio_cfg_output(LED_1R);
+    nrf_gpio_cfg_output(LED_1G);
+    nrf_gpio_cfg_output(LED_1B);
+
+    nrf_gpio_cfg_output(LED_2R);
+    nrf_gpio_cfg_output(LED_2G);
+    nrf_gpio_cfg_output(LED_2B);
+
+    nrf_gpio_cfg_output(LED_3R);
+    nrf_gpio_cfg_output(LED_3G);
+    nrf_gpio_cfg_output(LED_3B);
+
+    nrf_gpio_pin_set(LED_1R);
+    nrf_gpio_pin_set(LED_1G);
+    nrf_gpio_pin_set(LED_1B);
+
+    nrf_gpio_pin_set(LED_2R);
+    nrf_gpio_pin_set(LED_2G);
+    nrf_gpio_pin_set(LED_2B);
+
+    nrf_gpio_pin_set(LED_3R);
+    nrf_gpio_pin_set(LED_3G);
+    nrf_gpio_pin_set(LED_3B);
+
+    // nrf_gpio_cfg_output(LED_1);
+    // nrf_gpio_cfg_output(LED_2);
+    // nrf_gpio_cfg_output(LED_3);
+    // nrf_gpio_cfg_output(LED_4);
+    // nrf_gpio_pin_set(LED_1);
+    // nrf_gpio_pin_set(LED_2);
+    // nrf_gpio_pin_set(LED_3);
+    // nrf_gpio_pin_set(LED_4);
+}
+
+
+// void ant_message_types_master_bsp_evt_handler(di2btn_event_t evt)
 // {
-//     // if (event_list == DI2_BTN_EVENT_LEFT)
-//     // {
-//     //     NRF_LOG_INFO ("it's a left event");
-//     // } else
-//     // {
-//     //     // NRF_LOG_INFO ("it's not left! Oh noes!!!");
-//     // }
-//     switch (event_list)
-//         {
-//             case DI2_BTN_EVENT_NOTHING:
-//                 NRF_LOG_INFO ("m_callback: it's nothing!");
-//                 break;
+//     // uint8_t update_data;
+//     switch (evt)
+//     {
+//         case DI2_BTN_EVENT_NOTHING:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's nothing!");
+//             break;
 
-//             case DI2_BTN_EVENT_LEFT:
-//                 NRF_LOG_INFO ("m_callback: it's left!");
-//                 break;
+//         case DI2_BTN_EVENT_LEFT:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's left!");
+//             break;
 
-//             case DI2_BTN_EVENT_RIGHT:
-//                 NRF_LOG_INFO ("m_callback: it's right!");
-//                 break;
+//         case DI2_BTN_EVENT_RIGHT:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's right!");
+//             break;
 
-//             case DI2_BTN_EVENT_LEFT_LONG:
-//                 NRF_LOG_INFO ("m_callback: it's left long!");
-//                 break;
+//         case DI2_BTN_EVENT_LEFT_LONG:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's left long!");
+//             break;
 
-//             case DI2_BTN_EVENT_RIGHT_LONG:
-//                 NRF_LOG_INFO ("m_callback: it's right long!");
-//                 break;
+//         case DI2_BTN_EVENT_RIGHT_LONG:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's right long!");
+//             break;
 
-//             case DI2_BTN_EVENT_LEFT_DOUBLE:
-//                 NRF_LOG_INFO ("m_callback: it's left double!");
-//                 break;
+//         case DI2_BTN_EVENT_LEFT_LONG_CONT:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's left long continued!");
+//             break;
 
-//             case DI2_BTN_EVENT_RIGHT_DOUBLE:
-//                 NRF_LOG_INFO ("m_callback: it's right double!");
-//                 break;
+//         case DI2_BTN_EVENT_RIGHT_LONG_CONT:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's right long continued!");
+//             break;
 
-//             case DI2_BTN_EVENT_LEFT_TRIPLE:
-//                 NRF_LOG_INFO ("m_callback: it's left triple!");
-//                 break;
+//         case DI2_BTN_EVENT_LEFT_DOUBLE:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's left double!");
+//             break;
 
-//             case DI2_BTN_EVENT_RIGHT_TRIPLE:
-//                 NRF_LOG_INFO ("m_callback: it's right triple!");
-//                 break;
+//         case DI2_BTN_EVENT_RIGHT_DOUBLE:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's right double!");
+//             break;
 
+//         case DI2_BTN_EVENT_LEFT_TRIPLE:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's left triple!");
+//             break;
+
+//         case DI2_BTN_EVENT_RIGHT_TRIPLE:
+//             NRF_LOG_INFO ("ant_message_types_master_bsp_evt_handler: it's right triple!");
+//             break;
+
+//         default:
+//             break;
 //         }
     
-
+    
 // }
+
+static void button_handler(uint8_t pin_no, uint8_t button_action)
+{
+    NRF_LOG_INFO("Into handler");
+    if(button_action == APP_BUTTON_PUSH)
+    {
+        switch(pin_no)
+        {
+            case (BUTTON_1):
+                nrf_gpio_pin_toggle(LED_1R);
+                nrf_gpio_pin_toggle(LED_2R);
+                nrf_gpio_pin_toggle(LED_3R);
+                break;
+            case (BUTTON_2):
+                nrf_gpio_pin_toggle(LED_1G);
+                nrf_gpio_pin_toggle(LED_2G);
+                nrf_gpio_pin_toggle(LED_3G);
+                break;
+            case (BUTTON_3):
+                nrf_gpio_pin_toggle(LED_1B);
+                nrf_gpio_pin_toggle(LED_2B);
+                nrf_gpio_pin_toggle(LED_3B);
+                break;
+            default:
+                break;
+            //             case BUTTON_1:
+            //     nrf_gpio_pin_toggle(LED_1);
+            //     break;
+            // case BUTTON_2:
+            //     nrf_gpio_pin_toggle(LED_2);
+            //     break;
+            // case BUTTON_3:
+            //     nrf_gpio_pin_toggle(LED_3);
+            //     break;
+            // case BUTTON_4:
+            //     nrf_gpio_pin_toggle(LED_4);
+            //     break;
+            // default:
+            //     break;
+        }
+    }
+}
 
 /**@brief Function for application main entry. Does not return.
  */
 int main(void)
 {
+    uint32_t err_code;
     log_init();
-    di2_buttons_init(ant_message_types_master_bsp_evt_handler);
-    // utils_setup();
-    softdevice_setup();
-    ant_message_types_master_setup();
-    mpos_init();
+    NRF_LOG_INFO("MAELSTROM: QUICK TEST");
 
-    NRF_LOG_INFO("ANT Message Types example started.");
+    init_leds();
+    init_clock();
+
+    if(!nrf_drv_gpiote_is_init())
+    {
+    err_code = nrf_drv_gpiote_init();
+    APP_ERROR_CHECK(err_code);
+    }
+    // di2_buttons_init(ant_message_types_master_bsp_evt_handler);
+
+    // ant_message_types_master_setup();
+
+    static app_button_cfg_t p_button[] = {  {BUTTON_1, APP_BUTTON_ACTIVE_LOW, NRF_GPIO_PIN_PULLUP, button_handler},
+                                            {BUTTON_2, APP_BUTTON_ACTIVE_LOW, NRF_GPIO_PIN_PULLUP, button_handler},
+                                            {BUTTON_3, APP_BUTTON_ACTIVE_LOW, NRF_GPIO_PIN_PULLUP, button_handler}};
+
+    // APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, NULL);
+
+    err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("app timer init");
+
+    err_code = app_button_init(p_button, sizeof(p_button) / sizeof(p_button[0]), BUTTON_DEBOUNCE_DELAY);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_button_enable();
+    APP_ERROR_CHECK(err_code);
+
+    // softdevice_setup();
+
 
     // Enter main loop.
     for (;;)
     {
         NRF_LOG_FLUSH();
-        nrf_pwr_mgmt_run();
+        // nrf_pwr_mgmt_run();
     }
 }
