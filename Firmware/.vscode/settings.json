@@ -6,6 +6,7 @@
         "app_timer.h": "c",
         "app_util.h": "c",
         "sdk_config.h": "c",
-        "ant_parameters.h": "c"
+        "ant_parameters.h": "c",
+        "nrf_power.h": "c"
     }
 }

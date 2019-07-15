@@ -58,6 +58,8 @@
 #include "app_gpiote.h"
 #include "boards.h"
 #include "nrf_delay.h"
+#include "app_scheduler.h"
+#include "nrf_pwr_mgmt.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -68,6 +70,13 @@
 #define APP_TIMER_OP_QUEUE_SIZE         2  // Size of timer operation queues. 
 #define BUTTON_DEBOUNCE_DELAY			50 // Delay from a GPIOTE event until a button is reported as pushed. 
 #define APP_GPIOTE_MAX_USERS            1  // Maximum number of users of the GPIOTE handler. 
+
+#define SCHED_MAX_EVENT_DATA_SIZE           APP_TIMER_SCHED_EVENT_DATA_SIZE            /**< Maximum size of scheduler events. */
+#ifdef SVCALL_AS_NORMAL_FUNCTION
+#define SCHED_QUEUE_SIZE                    20                                         /**< Maximum number of events in the scheduler queue. More is needed in case of Serialization. */
+#else
+#define SCHED_QUEUE_SIZE                    10                                         /**< Maximum number of events in the scheduler queue. */
+#endif
 
 /**@brief Function for ANT stack initialization.
  */
@@ -136,6 +145,12 @@ void init_leds()
     // nrf_gpio_pin_set(LED_3);
     // nrf_gpio_pin_set(LED_4);
 }
+
+static void scheduler_init(void)
+{
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+}
+
 
 
 // void ant_message_types_master_bsp_evt_handler(di2btn_event_t evt)
@@ -246,12 +261,8 @@ int main(void)
 
     init_leds();
     init_clock();
+    scheduler_init();
 
-    if(!nrf_drv_gpiote_is_init())
-    {
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
-    }
     // di2_buttons_init(ant_message_types_master_bsp_evt_handler);
 
     // ant_message_types_master_setup();
@@ -279,6 +290,10 @@ int main(void)
     for (;;)
     {
         NRF_LOG_FLUSH();
-        // nrf_pwr_mgmt_run();
+        app_sched_execute();
+        if (NRF_LOG_PROCESS() == false)
+        {
+            nrf_pwr_mgmt_run();
+        }
     }
 }
