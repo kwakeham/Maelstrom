@@ -4,3 +4,9 @@ Firmware/nrf5_sdk/
 Firmware/BIST/pca10040/s332/armgcc/_build/
 
 Firmware/BIST/pca10040/blank/armgcc/_build/
+
+Firmware/Controller/Maelstrom10/s212/armgcc/_build/
+
+Firmware/Controller/Maelstrom10/s332/armgcc/_build/
+
+Firmware/Bootloader/Maelstrom10/armgcc/_build/
