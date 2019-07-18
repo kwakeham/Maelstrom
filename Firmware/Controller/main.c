@@ -74,10 +74,20 @@
 #include "nrf_drv_gpiote.h"
 #include "boards.h"
 #include "triac.h"
+#include "app_scheduler.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
+
+
+#define SCHED_MAX_EVENT_DATA_SIZE           APP_TIMER_SCHED_EVENT_DATA_SIZE            /**< Maximum size of scheduler events. */
+#ifdef SVCALL_AS_NORMAL_FUNCTION
+#define SCHED_QUEUE_SIZE                    20                                         /**< Maximum number of events in the scheduler queue. More is needed in case of Serialization. */
+#else
+#define SCHED_QUEUE_SIZE                    10                                         /**< Maximum number of events in the scheduler queue. */
+#endif
+
 
 /** @snippet [ANT BPWR RX Instance] */
 void ant_bpwr_evt_handler(ant_bpwr_profile_t * p_profile, ant_bpwr_evt_t event);
@@ -268,6 +278,11 @@ static void log_init(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 }
 
+static void scheduler_init(void)
+{
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+}
+
 
 /**@brief Function for application main entry, does not return.
  */
@@ -277,6 +292,7 @@ int main(void)
     utils_setup();
     softdevice_setup();
     profile_setup();
+    scheduler_init();
 
     NRF_LOG_INFO("ANT+ Bicycle Power RX example started.");
 
@@ -285,6 +301,7 @@ int main(void)
     for (;;)
     {
         NRF_LOG_FLUSH();
+        app_sched_execute();
         nrf_pwr_mgmt_run();
     }
 }

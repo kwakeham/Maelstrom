@@ -61,6 +61,7 @@ void gpio_init(void)
     err_code = nrf_drv_gpiote_init();
     APP_ERROR_CHECK(err_code);
     }
+    NRF_LOG_INFO("Init'd GPIOTE");
     // err_code = nrfx_gpiote_init();
     // APP_ERROR_CHECK(err_code);
 
@@ -68,6 +69,8 @@ void gpio_init(void)
 
     err_code = nrf_drv_gpiote_out_init(PIN_OUT, &out_config);
     APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Phase output setup");
 
     // err_code = nrf_drv_gpiote_out_init(BSP_LED_1, &out_config);
     // APP_ERROR_CHECK(err_code);
@@ -78,10 +81,13 @@ void gpio_init(void)
     err_code = nrf_drv_gpiote_in_init(PIN_ZC, &in_config, in_pin_handler);
     APP_ERROR_CHECK(err_code);
 
+    NRF_LOG_INFO("ZC input  setup");
+
     nrf_drv_gpiote_in_event_enable(PIN_ZC, true);
 
     // APP_TIMER_DEF(m_triac_timer_id); 
     err_code = app_timer_create(&m_triac_timer_id, APP_TIMER_MODE_SINGLE_SHOT, timeout_handler);
+    NRF_LOG_INFO("Timer Create");
     APP_ERROR_CHECK(err_code);
 }
 
