@@ -74,6 +74,7 @@
 #include "nrf_drv_gpiote.h"
 #include "boards.h"
 #include "triac.h"
+#include "mael_btn_led.h"
 #include "app_scheduler.h"
 
 #include "nrf_log.h"
@@ -218,9 +219,9 @@ static void utils_setup(void)
     err_code = nrf_pwr_mgmt_init();
     APP_ERROR_CHECK(err_code);
 
-    err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS,
-                        bsp_evt_handler);
-    APP_ERROR_CHECK(err_code);
+    // err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS,
+    //                     bsp_evt_handler);
+    // APP_ERROR_CHECK(err_code);
 
     err_code = bsp_btn_ant_init(m_ant_bpwr.channel_number, BPWR_DISP_CHANNEL_TYPE);
     APP_ERROR_CHECK(err_code);
@@ -283,6 +284,75 @@ static void scheduler_init(void)
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 }
 
+void test_callback(maelbtn_event_t event_list)
+{
+    switch (event_list)
+        {
+            case MAEL_BTN_EVENT_NOTHING:
+                NRF_LOG_INFO ("m_callback: it's nothing!");
+                break;
+
+            case MAEL_BTN_EVENT_1:
+                NRF_LOG_INFO ("m_callback: it's btn 1!");
+                break;
+
+            case MAEL_BTN_EVENT_2:
+                NRF_LOG_INFO ("m_callback: it's btn 2!");
+                break;
+
+            case MAEL_BTN_EVENT_3:
+                NRF_LOG_INFO ("m_callback: it's btn 3!");
+                break;
+
+            case MAEL_BTN_EVENT_1_LONG:
+                NRF_LOG_INFO ("m_callback: it's long 1!");
+                break;
+
+            case MAEL_BTN_EVENT_2_LONG:
+                NRF_LOG_INFO ("m_callback: it's long 2!");
+                break;
+
+            case MAEL_BTN_EVENT_3_LONG:
+                NRF_LOG_INFO ("m_callback: it's long 3!");
+                break;
+
+            case MAEL_BTN_EVENT_1_LONG_CONT:
+                NRF_LOG_INFO ("m_callback: it's long 1 cont!");
+                break;
+
+            case MAEL_BTN_EVENT_2_LONG_CONT:
+                NRF_LOG_INFO ("m_callback: it's long 2 cont!");
+                break;
+
+            case MAEL_BTN_EVENT_3_LONG_CONT:
+                NRF_LOG_INFO ("m_callback: it's long 3 cont!");
+                break;
+
+            case MAEL_BTN_EVENT_1_DOUBLE:
+                NRF_LOG_INFO ("m_callback: it's 1 double!");
+                break;
+
+            case MAEL_BTN_EVENT_2_DOUBLE:
+                NRF_LOG_INFO ("m_callback: it's 2 double!");
+                break;
+
+            case MAEL_BTN_EVENT_3_DOUBLE:
+                NRF_LOG_INFO ("m_callback: it's 3 double!");
+                break;
+
+            case MAEL_BTN_EVENT_1_TRIPLE:
+                NRF_LOG_INFO ("m_callback: it's 1 triple!");
+                break;
+
+            case MAEL_BTN_EVENT_2_TRIPLE:
+                NRF_LOG_INFO ("m_callback: it's 2 triple!");
+                break;
+
+            case MAEL_BTN_EVENT_3_TRIPLE:
+                NRF_LOG_INFO ("m_callback: it's 3 triple!");
+                break;
+        }
+}
 
 /**@brief Function for application main entry, does not return.
  */
@@ -293,6 +363,8 @@ int main(void)
     softdevice_setup();
     profile_setup();
     scheduler_init();
+
+    mael_buttons_init(test_callback);
 
     NRF_LOG_INFO("ANT+ Bicycle Power RX example started.");
 
