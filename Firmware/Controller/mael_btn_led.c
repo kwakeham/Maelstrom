@@ -39,18 +39,21 @@ static maelbtn_event_callback_t   m_registered_callback         = NULL;
 static uint8_t btn_1_press_count         = 0;
 static uint8_t btn_2_press_count         = 0;
 static uint8_t btn_3_press_count         = 0;
-static bool long_press_active_2;
 static bool long_press_active_1;
+static bool long_press_active_2;
+static bool long_press_active_3;
 static int32_t cnt_1 = 0;
 static int32_t cnt_2 = 0;
-// static int32_t cnt_3 = 0;
+static int32_t cnt_3 = 0;
 
 
 void button_timeout_handler (void * p_context)
 { 
+    // NRF_LOG_INFO("button timeout");
     uint32_t err_code;
     bool btn_1_pushed = app_button_is_pushed(0);
     bool btn_2_pushed = app_button_is_pushed(1);
+    bool btn_3_pushed = app_button_is_pushed(2);
     bool timer_run = false;
 
     if (btn_1_pushed && btn_2_pushed)
@@ -85,9 +88,11 @@ void button_timeout_handler (void * p_context)
             btn_2_press_count = 0;
         } 
         timer_run = true;
+        cnt_3 = 0;
     }
     else if (btn_2_pushed)
     {
+        // NRF_LOG_INFO("btn 2 pressed");
         cnt_2++;
         if ( cnt_2 >= LONG_PRESS(1000))
         {
@@ -104,7 +109,8 @@ void button_timeout_handler (void * p_context)
             btn_2_press_count = 0;
         } 
         timer_run = true;
-        cnt_2 = 0;
+        cnt_1 = 0; //These are suppose to be opposite, so if btn2 is pushed btn1 is reset
+        cnt_3 = 0;
     }
     else if (btn_1_pushed)
     {
@@ -115,7 +121,6 @@ void button_timeout_handler (void * p_context)
             if (!long_press_active_1)
             {
                 long_press_active_1 = true;
-                // di2_ble_keysend_registered_callback(sample_key_l,&sample_key); //TEST
                 m_registered_callback(MAEL_BTN_EVENT_1_LONG);
             } else
             {
@@ -124,9 +129,29 @@ void button_timeout_handler (void * p_context)
             btn_1_press_count = 0;
         } 
         timer_run = true;
-        cnt_1 = 0;
+        cnt_2 = 0; //These are suppose to be opposite, so if btn2 is pushed btn1 is reset
+        cnt_3 = 0;
     }
-
+    else if (btn_3_pushed)
+    {
+        cnt_3++;
+        if ( cnt_3 >= LONG_PRESS(1000))
+        {
+            cnt_3 = cnt_3 - LONG_PRESS(1000);
+            if (!long_press_active_3)
+            {
+                long_press_active_3 = true;
+                m_registered_callback(MAEL_BTN_EVENT_3_LONG);
+            } else
+            {
+                m_registered_callback(MAEL_BTN_EVENT_3_LONG_CONT);
+            }
+            btn_3_press_count = 0;
+        } 
+        timer_run = true;
+        cnt_1 = 0; //These are suppose to be opposite, so if btn2 is pushed btn1 is reset
+        cnt_2 = 0;
+    }
     else //button isn't press1
     {
         if (long_press_active_2)
@@ -161,41 +186,55 @@ void button_timeout_handler (void * p_context)
 
 void repeat_timeout_handler(void * p_context)
 { 
-    if (!long_press_active_2  && (cnt_2 < (LONG_PRESS(600)-1) ))
+    if (!long_press_active_1  && (cnt_1 < (LONG_PRESS(600)-1) ))
     {
         // NRF_LOG_INFO("repeat_timeout_handler: btn 1 pressed %d with cnt = %d", btn_1_press_count, cnt_2 );
         if (btn_1_press_count == 1)
         {
-            m_registered_callback(MAEL_BTN_EVENT_2);
+            m_registered_callback(MAEL_BTN_EVENT_1);
             // NRF_LOG_INFO("Edgecase");
         } else if (btn_1_press_count == 2)
         {
-            m_registered_callback(MAEL_BTN_EVENT_2_DOUBLE);
+            m_registered_callback(MAEL_BTN_EVENT_1_DOUBLE);
         } else if (btn_1_press_count == 3)
         {
-            m_registered_callback(MAEL_BTN_EVENT_2_TRIPLE);
+            m_registered_callback(MAEL_BTN_EVENT_1_TRIPLE);
         }
         btn_1_press_count = 0;
         // btn_2_press_count = 0;
     }
-    if (!long_press_active_1 && (cnt_1 < (LONG_PRESS(600)-1)))
+    if (!long_press_active_2 && (cnt_2 < (LONG_PRESS(600)-1)))
     {
         //Button 2 stuff
         if (btn_2_press_count == 1)
         {
-            m_registered_callback(MAEL_BTN_EVENT_1);
+            m_registered_callback(MAEL_BTN_EVENT_2);
         } else if (btn_2_press_count == 2)
         {
-            m_registered_callback(MAEL_BTN_EVENT_1_DOUBLE);
+            m_registered_callback(MAEL_BTN_EVENT_2_DOUBLE);
         } else if (btn_2_press_count == 3)
         {
-            m_registered_callback(MAEL_BTN_EVENT_1_TRIPLE);
+            m_registered_callback(MAEL_BTN_EVENT_2_TRIPLE);
         }
         
         btn_2_press_count = 0;
     }
-    
-    
+    if (!long_press_active_3 && (cnt_3 < (LONG_PRESS(600)-1)))
+    {
+        //Button 2 stuff
+        if (btn_3_press_count == 1)
+        {
+            m_registered_callback(MAEL_BTN_EVENT_3);
+        } else if (btn_3_press_count == 2)
+        {
+            m_registered_callback(MAEL_BTN_EVENT_3_DOUBLE);
+        } else if (btn_3_press_count == 3)
+        {
+            m_registered_callback(MAEL_BTN_EVENT_3_TRIPLE);
+        }
+        
+        btn_3_press_count = 0;
+    }
 
 } // end function
 
