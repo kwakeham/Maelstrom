@@ -97,6 +97,24 @@ void mael_buttons_init(maelbtn_event_callback_t callback);
  */
 void mael_buttons_disable();
 
+/**@brief Function for enable LEDS
+ *
+ * @details     The function initializes the mael button module to allow state indication and
+ *              button reaction.
+ *
+ * @param[in]   none
+ */
+void mael_init_leds();
+
+/**@brief Function for testing LEDS 
+ *
+ * @details     The function initializes the mael button module to allow state indication and
+ *              button reaction.
+ *
+ * @param[in]   none
+ */
+void mael_test_leds();
+
 #ifdef __cplusplus
 }
 #endif

@@ -16,6 +16,7 @@
 #include "nrf_log.h"
 #include "mael_btn_led.h"
 #include "app_util_platform.h"
+#include "nrf_delay.h"
 
 
 
@@ -241,12 +242,12 @@ void repeat_timeout_handler(void * p_context)
 
 void button_callback(uint8_t pin_no, uint8_t button_action)
 {
-    uint8_t button_test;
+    // uint8_t button_test;
       uint32_t err_code;
       if ((pin_no == BUTTON_1) && (button_action == APP_BUTTON_PUSH))
       {
-        button_test = 1;
-        NRF_LOG_INFO("Button set to %d", button_test);
+        // button_test = 1;
+        // NRF_LOG_INFO("Button set to %d", button_test);
 
         err_code = app_timer_start(m_button_action, APP_TIMER_TICKS(BUTTON_STATE_POLL_INTERVAL_MS), NULL);
         APP_ERROR_CHECK(err_code);
@@ -258,8 +259,8 @@ void button_callback(uint8_t pin_no, uint8_t button_action)
       } else if ((pin_no == BUTTON_2) && (button_action == APP_BUTTON_PUSH))
       {
         // NRF_LOG_INFO("button 14!!!");
-        button_test = 2;
-        NRF_LOG_INFO("Button set to %d", button_test);
+        // button_test = 2;
+        // NRF_LOG_INFO("Button set to %d", button_test);
 
         err_code = app_timer_start(m_button_action, APP_TIMER_TICKS(BUTTON_STATE_POLL_INTERVAL_MS), NULL);
         APP_ERROR_CHECK(err_code);
@@ -270,8 +271,8 @@ void button_callback(uint8_t pin_no, uint8_t button_action)
       } else if ((pin_no == BUTTON_3) && (button_action == APP_BUTTON_PUSH))
       {
         // NRF_LOG_INFO("button 14!!!");
-        button_test = 3;
-        NRF_LOG_INFO("Button set to %d", button_test);
+        // button_test = 3;
+        // NRF_LOG_INFO("Button set to %d", button_test);
 
         err_code = app_timer_start(m_button_action, APP_TIMER_TICKS(BUTTON_STATE_POLL_INTERVAL_MS), NULL);
         APP_ERROR_CHECK(err_code);
@@ -315,9 +316,11 @@ void mael_buttons_init(maelbtn_event_callback_t callback)
     
     err_code = app_timer_create(&m_repeat_action, APP_TIMER_MODE_SINGLE_SHOT, repeat_timeout_handler);
     APP_ERROR_CHECK(err_code);
+
+    mael_init_leds();
 }
 
-void di2_buttons_disable()
+void mael_buttons_disable()
 {
     uint32_t err_code;
 
@@ -326,4 +329,73 @@ void di2_buttons_disable()
 
     err_code = app_timer_stop(m_repeat_action);
     APP_ERROR_CHECK(err_code);
+}
+
+void mael_init_leds()
+{
+    nrf_gpio_cfg_output(LED_1R);
+    nrf_gpio_cfg_output(LED_1G);
+    nrf_gpio_cfg_output(LED_1B);
+
+    nrf_gpio_cfg_output(LED_2R);
+    nrf_gpio_cfg_output(LED_2G);
+    nrf_gpio_cfg_output(LED_2B);
+
+    nrf_gpio_cfg_output(LED_3R);
+    nrf_gpio_cfg_output(LED_3G);
+    nrf_gpio_cfg_output(LED_3B);
+
+    nrf_gpio_pin_set(LED_1R);
+    nrf_gpio_pin_set(LED_1G);
+    nrf_gpio_pin_set(LED_1B);
+
+    nrf_gpio_pin_set(LED_2R);
+    nrf_gpio_pin_set(LED_2G);
+    nrf_gpio_pin_set(LED_2B);
+
+    nrf_gpio_pin_set(LED_3R);
+    nrf_gpio_pin_set(LED_3G);
+    nrf_gpio_pin_set(LED_3B);
+
+    mael_test_leds();
+}
+
+void mael_test_leds()
+{
+    nrf_gpio_pin_clear(LED_1R);
+    nrf_gpio_pin_clear(LED_2R);
+    nrf_gpio_pin_clear(LED_3R);
+
+    nrf_delay_ms(500);
+
+    nrf_gpio_pin_set(LED_1R);
+    nrf_gpio_pin_set(LED_2R);
+    nrf_gpio_pin_set(LED_3R);
+
+    nrf_delay_ms(500);
+
+    nrf_gpio_pin_clear(LED_1G);
+    nrf_gpio_pin_clear(LED_2G);
+    nrf_gpio_pin_clear(LED_3G);
+
+    nrf_delay_ms(500);
+
+    nrf_gpio_pin_set(LED_1G);
+    nrf_gpio_pin_set(LED_2G);
+    nrf_gpio_pin_set(LED_3G);
+    
+    nrf_delay_ms(500);
+
+    nrf_gpio_pin_clear(LED_1B);
+    nrf_gpio_pin_clear(LED_2B);
+    nrf_gpio_pin_clear(LED_3B);
+    
+    nrf_delay_ms(500);
+
+    nrf_gpio_pin_set(LED_1B);
+    nrf_gpio_pin_set(LED_2B);
+    nrf_gpio_pin_set(LED_3B);
+    
+
+
 }

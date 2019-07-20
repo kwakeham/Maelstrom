@@ -66,6 +66,8 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ant.c \
   $(PROJ_DIR)/triac.c \
+  $(PROJ_DIR)/mael_btn_led.c \
+  $(SDK_ROOT)/components/ant/ant_search_config/ant_search_config.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -113,6 +115,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/pwr_mgmt \
   $(SDK_ROOT)/components/libraries/sensorsim \
   $(PROJ_DIR) \
+  $(SDK_ROOT)/components/ant/ant_search_config \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -141,6 +144,8 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
+CFLAGS += -DDEBUG
+CFLAGS += -DCONFIG_NFCT_PINS_AS_GPIOS 
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
@@ -160,6 +165,8 @@ ASMFLAGS += -DNRF52_PAN_74
 ASMFLAGS += -DS212
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DSWI_DISABLE0
+ASMFLAGS += -DDEBUG
+ASMFLAGS += -DCONFIG_NFCT_PINS_AS_GPIOS 
 
 # Linker flags
 LDFLAGS += $(OPT)

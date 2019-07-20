@@ -103,6 +103,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ant.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
+  $(SDK_ROOT)/components/ant/ant_search_config/ant_search_config.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -246,6 +247,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_bpwr \
   $(SDK_ROOT)/components/ant/ant_state_indicator \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_bpwr/pages \
+  $(SDK_ROOT)/components/ant/ant_search_config \
 
 
 # Libraries common to all targets
@@ -276,6 +278,7 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
 CFLAGS += -DDEBUG
+CFLAGS += -DCONFIG_NFCT_PINS_AS_GPIOS 
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
@@ -295,6 +298,7 @@ ASMFLAGS += -DS332
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DSWI_DISABLE0
 ASMFLAGS += -DDEBUG
+ASMFLAGS += -DCONFIG_NFCT_PINS_AS_GPIOS 
 
 # Linker flags
 LDFLAGS += $(OPT)

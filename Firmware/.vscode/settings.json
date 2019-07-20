@@ -8,6 +8,8 @@
         "sdk_config.h": "c",
         "ant_parameters.h": "c",
         "nrf_power.h": "c",
-        "mael_btn_led.h": "c"
+        "mael_btn_led.h": "c",
+        "ant_search_config.h": "c",
+        "nrf_sdh.h": "c"
     }
 }

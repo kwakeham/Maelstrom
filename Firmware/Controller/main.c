@@ -68,6 +68,7 @@
 #include "nrf_sdh.h"
 #include "nrf_sdh_ant.h"
 #include "ant_key_manager.h"
+#include "ant_search_config.h"
 #include "ant_bpwr.h"
 #include "bsp_btn_ant.h"
 #include "ant_state_indicator.h"
@@ -76,6 +77,7 @@
 #include "triac.h"
 #include "mael_btn_led.h"
 #include "app_scheduler.h"
+#include "ant_interface.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -89,9 +91,9 @@
 #define SCHED_QUEUE_SIZE                    10                                         /**< Maximum number of events in the scheduler queue. */
 #endif
 
-
 /** @snippet [ANT BPWR RX Instance] */
 void ant_bpwr_evt_handler(ant_bpwr_profile_t * p_profile, ant_bpwr_evt_t event);
+
 
 BPWR_DISP_CHANNEL_CONFIG_DEF(m_ant_bpwr,
                              BPWR_CHANNEL_NUM,
@@ -103,7 +105,6 @@ BPWR_DISP_PROFILE_CONFIG_DEF(m_ant_bpwr,
 
 static ant_bpwr_profile_t m_ant_bpwr;
 /** @snippet [ANT BPWR RX Instance] */
-
 
 NRF_SDH_ANT_OBSERVER(m_ant_observer, ANT_BPWR_ANT_OBSERVER_PRIO,
                      ant_bpwr_disp_evt_handler, &m_ant_bpwr);
@@ -141,25 +142,26 @@ void bsp_evt_handler(bsp_event_t evt)
  *
  * @param[in]   event       Shutdown type.
  */
-static bool shutdown_handler(nrf_pwr_mgmt_evt_t event)
-{
-    ret_code_t err_code;
 
-    switch (event)
-    {
-        case NRF_PWR_MGMT_EVT_PREPARE_WAKEUP:
-            err_code = bsp_btn_ant_sleep_mode_prepare();
-            APP_ERROR_CHECK(err_code);
-            break;
+// static bool shutdown_handler(nrf_pwr_mgmt_evt_t event)
+// {
+//     ret_code_t err_code;
 
-        default:
-            break;
-    }
+//     switch (event)
+//     {
+//         case NRF_PWR_MGMT_EVT_PREPARE_WAKEUP:
+//             err_code = bsp_btn_ant_sleep_mode_prepare();
+//             APP_ERROR_CHECK(err_code);
+//             break;
 
-    return true;
-}
+//         default:
+//             break;
+//     }
 
-NRF_PWR_MGMT_HANDLER_REGISTER(shutdown_handler, APP_SHUTDOWN_HANDLER_PRIORITY);
+//     return true;
+// }
+
+// NRF_PWR_MGMT_HANDLER_REGISTER(shutdown_handler, APP_SHUTDOWN_HANDLER_PRIORITY);
 
 /**@brief Function for handling Bicycle Power profile's events
  *
@@ -223,11 +225,11 @@ static void utils_setup(void)
     //                     bsp_evt_handler);
     // APP_ERROR_CHECK(err_code);
 
-    err_code = bsp_btn_ant_init(m_ant_bpwr.channel_number, BPWR_DISP_CHANNEL_TYPE);
-    APP_ERROR_CHECK(err_code);
+    // err_code = bsp_btn_ant_init(m_ant_bpwr.channel_number, BPWR_DISP_CHANNEL_TYPE);
+    // APP_ERROR_CHECK(err_code);
 
-    err_code = ant_state_indicator_init(m_ant_bpwr.channel_number, BPWR_DISP_CHANNEL_TYPE);
-    APP_ERROR_CHECK(err_code);
+    // err_code = ant_state_indicator_init(m_ant_bpwr.channel_number, BPWR_DISP_CHANNEL_TYPE);
+    // APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -260,6 +262,19 @@ static void profile_setup(void)
                                              BPWR_DISP_PROFILE_CONFIG(m_ant_bpwr));
     APP_ERROR_CHECK(err_code);
 
+    const ant_search_config_t bs_search_config =
+    {
+        .channel_number        = BPWR_CHANNEL_NUM,
+        .low_priority_timeout  = ANT_LOW_PRIORITY_TIMEOUT_DISABLE,
+        .high_priority_timeout = ANT_DEFAULT_HIGH_PRIORITY_TIMEOUT,
+        .search_sharing_cycles = ANT_SEARCH_SHARING_CYCLES_DISABLE,
+        .search_priority       = ANT_SEARCH_PRIORITY_DEFAULT,
+        .waveform              = ANT_WAVEFORM_DEFAULT,
+    };
+
+    err_code = ant_search_init(&bs_search_config);
+    APP_ERROR_CHECK(err_code);
+
     err_code = ant_bpwr_disp_open(&m_ant_bpwr);
     APP_ERROR_CHECK(err_code);
 
@@ -286,6 +301,9 @@ static void scheduler_init(void)
 
 void test_callback(maelbtn_event_t event_list)
 {
+    uint16_t mael_devicenumber;
+    uint8_t mael_devicetype;
+    uint8_t mael_TransmitType;
     switch (event_list)
         {
             case MAEL_BTN_EVENT_NOTHING:
@@ -294,10 +312,17 @@ void test_callback(maelbtn_event_t event_list)
 
             case MAEL_BTN_EVENT_1:
                 NRF_LOG_INFO ("m_callback: it's btn 1!");
+                sd_ant_channel_close(BPWR_CHANNEL_NUM);
                 break;
 
             case MAEL_BTN_EVENT_2:
                 NRF_LOG_INFO ("m_callback: it's btn 2!");
+                sd_ant_channel_id_get(BPWR_CHANNEL_NUM, &mael_devicenumber, &mael_devicetype, &mael_TransmitType);
+                NRF_LOG_INFO ("Device number %d",mael_devicenumber);
+                mael_devicenumber = 0;
+                sd_ant_channel_id_set(BPWR_CHANNEL_NUM, mael_devicenumber, mael_devicetype, mael_TransmitType);
+                ret_code_t err_code = ant_bpwr_disp_open(&m_ant_bpwr);
+                APP_ERROR_CHECK(err_code);
                 break;
 
             case MAEL_BTN_EVENT_3:

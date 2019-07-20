@@ -15,10 +15,16 @@
 #include "nrf_log.h"
 
 
-APP_TIMER_DEF(m_triac_timer_id); 
+APP_TIMER_DEF(m_triac_timer_id);
+
+APP_TIMER_DEF(m_bpwr_timer_id); 
+
 bool ZC_pulse = 1;
 uint32_t offset = 150;
 uint16_t p_avg = 0;
+uint32_t time_old = 0;
+uint32_t time_diff = 0;
+uint32_t time = 0;
 
 void timeout_handler(void * p_context)
 {
@@ -33,6 +39,11 @@ void timeout_handler(void * p_context)
     } else {
         nrf_drv_gpiote_out_clear(PIN_OUT);
     }
+}
+
+void timeout_handler2(void * p_context)
+{
+
 }
 
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
@@ -89,6 +100,13 @@ void gpio_init(void)
     err_code = app_timer_create(&m_triac_timer_id, APP_TIMER_MODE_SINGLE_SHOT, timeout_handler);
     NRF_LOG_INFO("Timer Create");
     APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_create(&m_bpwr_timer_id, APP_TIMER_MODE_REPEATED, timeout_handler2);
+    NRF_LOG_INFO("Timer repeated ");
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_start(m_bpwr_timer_id, 128, NULL);
+    APP_ERROR_CHECK(err_code);
 }
 
 void set_power(uint16_t bike_power){
@@ -111,8 +129,21 @@ void set_power(uint16_t bike_power){
     // NRF_LOG_INFO("HelloKeith");
 
     int16_t p_diff;
+    uint8_t adjuster;
+
+
+    time = app_timer_cnt_get();
+    time_diff = time - time_old;
+    time_old = time;
+    NRF_LOG_INFO("time:                  %u s", time_diff);
+    adjuster = time_diff/8180;
+    NRF_LOG_INFO("factor:                  %u s", adjuster);
+
+
     p_diff = bike_power - p_avg;
-    p_diff = p_diff/4;
+    NRF_LOG_INFO("p_diff:                  %i W", p_diff);
+    p_diff = (p_diff*adjuster)/10;
+    NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_avg = p_avg + p_diff;
 
     if (p_avg > 200)
@@ -130,6 +161,9 @@ void set_power(uint16_t bike_power){
     } 
     NRF_LOG_INFO("offset:                  %u c", offset);
     NRF_LOG_INFO("p_avg:                  %u W", p_avg);
+    
+
+
 }
 
 //150 = 4.683ms, 4.697ms
