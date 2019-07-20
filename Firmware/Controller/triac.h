@@ -27,4 +27,6 @@ void gpio_init(void);
 
 void set_power(uint16_t bike_power);
 
+void cool_down(uint16_t bike_power);
+
 #endif

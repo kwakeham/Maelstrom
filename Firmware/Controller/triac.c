@@ -25,6 +25,7 @@ uint16_t p_avg = 0;
 uint32_t time_old = 0;
 uint32_t time_diff = 0;
 uint32_t time = 0;
+int32_t cool_down_count = 0;
 
 void timeout_handler(void * p_context)
 {
@@ -110,27 +111,10 @@ void gpio_init(void)
 }
 
 void set_power(uint16_t bike_power){
-    // if (bike_power > 200)
-    // {
-    //     offset = 60;
-    // } else if (bike_power <= 200 && bike_power > 180)
-    // {
-    //     offset = 80;
-    // } else if (bike_power <= 180  && bike_power > 160)
-    // {
-    //     offset = 100;
-    // } else if (bike_power <= 160  && bike_power > 140)
-    // {
-    //     offset = 120;
-    // } else if (bike_power < 140)
-    // {
-    //     offset = 140;
-    // } 
-    // NRF_LOG_INFO("HelloKeith");
 
-    int16_t p_diff;
-    uint8_t adjuster;
-
+    int16_t p_diff; //power difference
+    uint8_t adjuster; //The calculated adjuster difference, to be calculated
+    uint16_t p_cool;
 
     time = app_timer_cnt_get();
     time_diff = time - time_old;
@@ -138,33 +122,66 @@ void set_power(uint16_t bike_power){
     NRF_LOG_INFO("time:                  %u s", time_diff);
     adjuster = time_diff/8180;
     NRF_LOG_INFO("factor:                  %u s", adjuster);
-
-
     p_diff = bike_power - p_avg;
     NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_diff = (p_diff*adjuster)/10;
     NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_avg = p_avg + p_diff;
 
+    p_cool = (bike_power*adjuster)/200;
+
+
     if (p_avg > 200)
     {
         offset = 60;
+        cool_down_count= cool_down_count+p_cool;
     } else if (p_avg <= 200 && p_avg > 40) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
     {
         offset = (p_avg*-0.5)+160;
+        cool_down_count= cool_down_count+p_cool;
     } else if (p_avg <= 40 && p_avg > 20)
     {
-        offset = 140;
+        if (cool_down_count > 0)
+        {
+            cool_down_count = cool_down_count-100;
+            offset = 100;
+        }
+        else
+        {
+            /* code */
+            offset = 140;
+        }
+        
+        
     } else if (p_avg <= 20)
     {
-        offset = 500;
+        if (cool_down_count > 0)
+        {
+            cool_down_count = cool_down_count-100;
+            offset = 100;
+        }
+        else
+        {
+            /* code */
+            offset = 500;
+        }
     } 
     NRF_LOG_INFO("offset:                  %u c", offset);
     NRF_LOG_INFO("p_avg:                  %u W", p_avg);
+    NRF_LOG_INFO("cooldowncount            %u c",cool_down_count);
     
+}
 
+void cool_down(uint16_t bike_power)
+{
+    if (bike_power > 40)
+    {
+        
+    }
 
 }
+
+
 
 //150 = 4.683ms, 4.697ms
 //75 = 2.454ms
