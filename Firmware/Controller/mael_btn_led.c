@@ -242,12 +242,12 @@ void repeat_timeout_handler(void * p_context)
 
 void button_callback(uint8_t pin_no, uint8_t button_action)
 {
-    // uint8_t button_test;
+    uint8_t button_test;
       uint32_t err_code;
       if ((pin_no == BUTTON_1) && (button_action == APP_BUTTON_PUSH))
       {
-        // button_test = 1;
-        // NRF_LOG_INFO("Button set to %d", button_test);
+        button_test = 1;
+        NRF_LOG_INFO("Button set to %d", button_test);
 
         err_code = app_timer_start(m_button_action, APP_TIMER_TICKS(BUTTON_STATE_POLL_INTERVAL_MS), NULL);
         APP_ERROR_CHECK(err_code);
@@ -259,8 +259,8 @@ void button_callback(uint8_t pin_no, uint8_t button_action)
       } else if ((pin_no == BUTTON_2) && (button_action == APP_BUTTON_PUSH))
       {
         // NRF_LOG_INFO("button 14!!!");
-        // button_test = 2;
-        // NRF_LOG_INFO("Button set to %d", button_test);
+        button_test = 2;
+        NRF_LOG_INFO("Button set to %d", button_test);
 
         err_code = app_timer_start(m_button_action, APP_TIMER_TICKS(BUTTON_STATE_POLL_INTERVAL_MS), NULL);
         APP_ERROR_CHECK(err_code);
@@ -271,8 +271,8 @@ void button_callback(uint8_t pin_no, uint8_t button_action)
       } else if ((pin_no == BUTTON_3) && (button_action == APP_BUTTON_PUSH))
       {
         // NRF_LOG_INFO("button 14!!!");
-        // button_test = 3;
-        // NRF_LOG_INFO("Button set to %d", button_test);
+        button_test = 3;
+        NRF_LOG_INFO("Button set to %d", button_test);
 
         err_code = app_timer_start(m_button_action, APP_TIMER_TICKS(BUTTON_STATE_POLL_INTERVAL_MS), NULL);
         APP_ERROR_CHECK(err_code);
@@ -386,16 +386,13 @@ void mael_test_leds()
     
     nrf_delay_ms(500);
 
-    nrf_gpio_pin_clear(LED_1B);
-    nrf_gpio_pin_clear(LED_2B);
-    nrf_gpio_pin_clear(LED_3B);
-    
-    nrf_delay_ms(500);
-
     nrf_gpio_pin_set(LED_1B);
     nrf_gpio_pin_set(LED_2B);
     nrf_gpio_pin_set(LED_3B);
-    
 
+}
 
+void mael_led_toggle()
+{
+    nrf_gpio_pin_toggle(LED_1R);
 }

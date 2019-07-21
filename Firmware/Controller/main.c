@@ -78,6 +78,7 @@
 #include "mael_btn_led.h"
 #include "app_scheduler.h"
 #include "ant_interface.h"
+#include "nrf_delay.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -178,6 +179,7 @@ void ant_bpwr_evt_handler(ant_bpwr_profile_t * p_profile, ant_bpwr_evt_t event)
             break;
         case ANT_BPWR_PAGE_16_UPDATED:
             set_power(p_profile->BPWR_PROFILE_instantaneous_power);
+            mael_led_toggle();
             /* fall through */
         case ANT_BPWR_PAGE_17_UPDATED:
             /* fall through */
@@ -313,16 +315,18 @@ void test_callback(maelbtn_event_t event_list)
             case MAEL_BTN_EVENT_1:
                 NRF_LOG_INFO ("m_callback: it's btn 1!");
                 sd_ant_channel_close(BPWR_CHANNEL_NUM);
+                sd_ant_channel_id_get(BPWR_CHANNEL_NUM, &mael_devicenumber, &mael_devicetype, &mael_TransmitType);
+                NRF_LOG_INFO ("Device number %d",mael_devicenumber);
+                mael_devicenumber = 0;
+                nrf_delay_ms(200);
+                sd_ant_channel_id_set(BPWR_CHANNEL_NUM, mael_devicenumber, mael_devicetype, mael_TransmitType);
+                ret_code_t err_code = ant_bpwr_disp_open(&m_ant_bpwr);
+                APP_ERROR_CHECK(err_code);
                 break;
 
             case MAEL_BTN_EVENT_2:
                 NRF_LOG_INFO ("m_callback: it's btn 2!");
-                sd_ant_channel_id_get(BPWR_CHANNEL_NUM, &mael_devicenumber, &mael_devicetype, &mael_TransmitType);
-                NRF_LOG_INFO ("Device number %d",mael_devicenumber);
-                mael_devicenumber = 0;
-                sd_ant_channel_id_set(BPWR_CHANNEL_NUM, mael_devicenumber, mael_devicetype, mael_TransmitType);
-                ret_code_t err_code = ant_bpwr_disp_open(&m_ant_bpwr);
-                APP_ERROR_CHECK(err_code);
+
                 break;
 
             case MAEL_BTN_EVENT_3:

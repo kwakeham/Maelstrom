@@ -32,6 +32,7 @@ typedef enum
 } maelbtn_event_t;
 
 
+
 /**@brief maelBTN module event callback function type.
  *
  * @details     Upon an event in the BSP module, this callback function will be called to notify
@@ -114,6 +115,8 @@ void mael_init_leds();
  * @param[in]   none
  */
 void mael_test_leds();
+
+void mael_led_toggle();
 
 #ifdef __cplusplus
 }

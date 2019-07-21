@@ -10,6 +10,7 @@
         "nrf_power.h": "c",
         "mael_btn_led.h": "c",
         "ant_search_config.h": "c",
-        "nrf_sdh.h": "c"
+        "nrf_sdh.h": "c",
+        "nrf_sdh_ant.h": "c"
     }
 }
