@@ -20,12 +20,17 @@ APP_TIMER_DEF(m_triac_timer_id);
 APP_TIMER_DEF(m_bpwr_timer_id); 
 
 bool ZC_pulse = 1;
-uint32_t offset = 150;
+uint32_t offset = 500;
 uint16_t p_avg = 0;
 uint32_t time_old = 0;
 uint32_t time_diff = 0;
 uint32_t time = 0;
 int32_t cool_down_count = 0;
+
+triac_settings_t triac_power_level = TRIAC_200;
+
+uint16_t triac_offset_min = 140; //min power = longest time
+uint16_t triac_offset_max = 60; //max power = shortest time
 
 void timeout_handler(void * p_context)
 {
@@ -121,7 +126,12 @@ void set_power(uint16_t bike_power){
     time_old = time;
     NRF_LOG_INFO("time:                  %u s", time_diff);
     adjuster = time_diff/8180;
-    NRF_LOG_INFO("factor:                  %u s", adjuster);
+    NRF_LOG_INFO("factor1:                  %u s", adjuster);
+    if (adjuster > 10)
+    {
+        adjuster = 10;
+    }
+    NRF_LOG_INFO("factor2:                  %u s", adjuster);
     p_diff = bike_power - p_avg;
     NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_diff = (p_diff*adjuster)/10;
@@ -133,7 +143,7 @@ void set_power(uint16_t bike_power){
 
     if (p_avg > 200)
     {
-        offset = 60;
+        offset = triac_offset_max;
         cool_down_count= cool_down_count+p_cool;
     } else if (p_avg <= 200 && p_avg > 40) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
     {
@@ -148,8 +158,7 @@ void set_power(uint16_t bike_power){
         }
         else
         {
-            /* code */
-            offset = 140;
+            offset = triac_offset_min;
         }
         
         
@@ -162,13 +171,12 @@ void set_power(uint16_t bike_power){
         }
         else
         {
-            /* code */
             offset = 500;
         }
     } 
     NRF_LOG_INFO("offset:                  %u c", offset);
     NRF_LOG_INFO("p_avg:                  %u W", p_avg);
-    NRF_LOG_INFO("cooldowncount            %u c",cool_down_count);
+    NRF_LOG_INFO("cooldowncount            %i c",cool_down_count);
     
 }
 
@@ -179,6 +187,32 @@ void cool_down(uint16_t bike_power)
         
     }
 
+}
+
+void set_power_mode (triac_select_t t_up_down)
+{
+    switch (t_up_down)
+    {
+        case TRIAC_POWER_UP:
+            triac_power_level++;
+            if(triac_power_level > 5)
+            {
+                triac_power_level = TRIAC_350;
+            }
+            break;
+
+        case TRIAC_POWER_DOWN:
+            triac_power_level--;
+            if(triac_power_level > 5)
+            {
+                triac_power_level = TRIAC_100;
+            }
+            break;
+
+        default:
+            break;
+    }
+    NRF_LOG_INFO("Triac powerlevel          %u",triac_power_level);
 }
 
 

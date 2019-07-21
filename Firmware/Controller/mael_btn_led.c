@@ -173,8 +173,19 @@ void button_timeout_handler (void * p_context)
         {
             m_registered_callback(MAEL_BTN_EVENT_1);
         }
+
+        if (long_press_active_3)
+        {
+            long_press_active_3 = false;
+        } 
+        else if (!long_press_active_3 && cnt_3 >= (LONG_PRESS(600)))  // This fixes the edge case of between 600ms time out and the 1000ms long
+        {
+            m_registered_callback(MAEL_BTN_EVENT_3);
+        }
+        timer_run = true;
         cnt_2 = 0; // Reset the counter
         cnt_1 = 0;
+        cnt_3 = 0;
     }
 
     if (timer_run)

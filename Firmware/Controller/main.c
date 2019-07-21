@@ -326,11 +326,12 @@ void test_callback(maelbtn_event_t event_list)
 
             case MAEL_BTN_EVENT_2:
                 NRF_LOG_INFO ("m_callback: it's btn 2!");
-
+                set_power_mode (TRIAC_POWER_UP);
                 break;
 
             case MAEL_BTN_EVENT_3:
                 NRF_LOG_INFO ("m_callback: it's btn 3!");
+                set_power_mode (TRIAC_POWER_DOWN);
                 break;
 
             case MAEL_BTN_EVENT_1_LONG:
