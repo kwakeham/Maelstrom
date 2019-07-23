@@ -47,4 +47,14 @@ void cool_down(uint16_t bike_power);
 
 void set_power_mode (triac_select_t t_up_down);
 
+void triac_settings(void);
+
+void set_triac_offset_max(void);
+
+void set_triac_offset_max_reset(void);
+
+void set_triac_offset_min(void);
+
+void set_triac_offset_min_reset(void);
+
 #endif

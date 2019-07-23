@@ -340,10 +340,12 @@ void test_callback(maelbtn_event_t event_list)
 
             case MAEL_BTN_EVENT_2_LONG:
                 NRF_LOG_INFO ("m_callback: it's long 2!");
+                set_triac_offset_max_reset();
                 break;
 
             case MAEL_BTN_EVENT_3_LONG:
                 NRF_LOG_INFO ("m_callback: it's long 3!");
+                set_triac_offset_min_reset();
                 break;
 
             case MAEL_BTN_EVENT_1_LONG_CONT:
@@ -352,10 +354,12 @@ void test_callback(maelbtn_event_t event_list)
 
             case MAEL_BTN_EVENT_2_LONG_CONT:
                 NRF_LOG_INFO ("m_callback: it's long 2 cont!");
+                set_triac_offset_max();
                 break;
 
             case MAEL_BTN_EVENT_3_LONG_CONT:
                 NRF_LOG_INFO ("m_callback: it's long 3 cont!");
+                set_triac_offset_min();
                 break;
 
             case MAEL_BTN_EVENT_1_DOUBLE:

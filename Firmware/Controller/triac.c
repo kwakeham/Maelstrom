@@ -31,6 +31,10 @@ triac_settings_t triac_power_level = TRIAC_200;
 
 uint16_t triac_offset_min = 140; //min power = longest time
 uint16_t triac_offset_max = 60; //max power = shortest time
+uint16_t triac_power_min = 20;
+uint16_t triac_power_max = 200;
+float triac_slope = -0.5;
+uint16_t triac_offset = 150;
 
 void timeout_handler(void * p_context)
 {
@@ -213,6 +217,57 @@ void set_power_mode (triac_select_t t_up_down)
             break;
     }
     NRF_LOG_INFO("Triac powerlevel          %u",triac_power_level);
+    triac_settings();
+}
+
+void triac_settings(void)
+{
+    triac_power_max = triac_power_level * 50 + 100;
+    NRF_LOG_INFO("Triac Max Power        %u",triac_power_max);
+    triac_offset = ((triac_power_min*triac_offset_max)-(triac_power_max*triac_offset_min))/(triac_power_min - triac_power_max);
+    triac_slope = (float)((float)triac_offset_min - (float)triac_offset)/(float)(triac_power_min);
+    NRF_LOG_INFO( "slope: "NRF_LOG_FLOAT_MARKER , NRF_LOG_FLOAT(triac_slope));
+    NRF_LOG_INFO( "offset: %u", triac_offset);
+}
+
+void set_triac_offset_max(void)
+{
+    offset = offset - 5;
+    if (offset < 20)
+    {
+        offset = 60;
+    }
+    triac_offset_max = offset;
+    NRF_LOG_INFO("triac max offset =         %d",offset);
+    triac_settings();
+}
+
+void set_triac_offset_max_reset(void)
+{
+    offset = 60;
+    triac_offset_max = offset;
+    NRF_LOG_INFO("triac max offset reset =         %d",offset);
+    triac_settings();
+}
+
+void set_triac_offset_min(void)
+{
+    offset = offset + 5;
+    if (offset > 190)
+    {
+        offset = 140;
+    }
+    triac_offset_min = offset;
+    NRF_LOG_INFO("triac min offset =         %d",offset);
+    triac_settings();
+}
+
+void set_triac_offset_min_reset(void)
+{
+    offset = 140;
+    triac_offset_min = offset;
+    NRF_LOG_INFO("triac max offset reset =         %d",offset);
+    triac_settings();
 }
 
 
