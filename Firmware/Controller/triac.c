@@ -253,6 +253,8 @@ void set_triac_offset_max(void)
     triac_offset_max = offset;
     NRF_LOG_INFO("triac max offset =         %d",offset);
     triac_settings();
+    mael_led_display((triac_offset_max/5)+3); //20 = 4 ~ 7,  60 = 12 ~ 15
+
 }
 
 void set_triac_offset_max_reset(void)
@@ -261,18 +263,22 @@ void set_triac_offset_max_reset(void)
     triac_offset_max = offset;
     NRF_LOG_INFO("triac max offset reset =         %d",offset);
     triac_settings();
+    mael_led_display((triac_offset_max/5)+3); //20 = 4 ~ 7,  60 = 12 ~ 15
+
 }
 
 void set_triac_offset_min(void)
 {
     offset = offset + 5;
-    if (offset > 190)
+    if (offset > 180)
     {
         offset = 140;
     }
     triac_offset_min = offset;
     NRF_LOG_INFO("triac min offset =         %d",offset);
     triac_settings();
+    mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
+
 }
 
 void set_triac_offset_min_reset(void)
@@ -281,6 +287,7 @@ void set_triac_offset_min_reset(void)
     triac_offset_min = offset;
     NRF_LOG_INFO("triac max offset reset =         %d",offset);
     triac_settings();
+    mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
 }
 
 

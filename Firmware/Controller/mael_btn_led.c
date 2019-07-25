@@ -532,45 +532,117 @@ void mael_led_display(mael_led_event_t led_status)
             nrf_gpio_pin_clear(LED_1B);
             nrf_gpio_pin_clear(LED_2B);
             nrf_gpio_pin_clear(LED_3B);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
             break;
 
         case MAEL_LED_BLUE_2:
             nrf_gpio_pin_clear(LED_2B);
             nrf_gpio_pin_clear(LED_3B);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
             break;
 
         case MAEL_LED_BLUE_1:
             nrf_gpio_pin_clear(LED_3B);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
             break;
 
         case MAEL_LED_GREEN_3:
             nrf_gpio_pin_clear(LED_1G);
             nrf_gpio_pin_clear(LED_2G);
             nrf_gpio_pin_clear(LED_3G);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
             break;
 
         case MAEL_LED_GREEN_2:
             nrf_gpio_pin_clear(LED_2G);
             nrf_gpio_pin_clear(LED_3G);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
             break;
 
         case MAEL_LED_GREEN_1:
             nrf_gpio_pin_clear(LED_3G);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
             break;
 
         case MAEL_LED_RED_3:
             nrf_gpio_pin_clear(LED_1R);
             nrf_gpio_pin_clear(LED_2R);
             nrf_gpio_pin_clear(LED_3R);
+
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3G);
             break;
 
         case MAEL_LED_RED_2:
             nrf_gpio_pin_clear(LED_2R);
             nrf_gpio_pin_clear(LED_3R);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3G);
             break;
 
         case MAEL_LED_RED_1:
             nrf_gpio_pin_clear(LED_3R);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3G);
             break;
         
         default:
