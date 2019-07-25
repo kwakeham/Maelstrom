@@ -13,11 +13,14 @@
 #include "nrf_drv_gpiote.h"
 #include "triac.h"
 #include "nrf_log.h"
+#include "mael_btn_led.h"
 
 
 APP_TIMER_DEF(m_triac_timer_id);
 
 APP_TIMER_DEF(m_bpwr_timer_id); 
+
+// APP_TIMER_DEF(m_led_id); 
 
 bool ZC_pulse = 1;
 uint32_t offset = 500;
@@ -51,10 +54,11 @@ void timeout_handler(void * p_context)
     }
 }
 
-void timeout_handler2(void * p_context)
+void timeout_handler2(void * p_context) //this is to keep the timers alive!!!!
 {
 
 }
+
 
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
@@ -115,6 +119,10 @@ void gpio_init(void)
     NRF_LOG_INFO("Timer repeated ");
     APP_ERROR_CHECK(err_code);
 
+    // err_code = app_timer_create(&m_led_id, APP_TIMER_MODE_SINGLE_SHOT, led_timeout_handler);
+    // NRF_LOG_INFO("Timer repeated ");
+    // APP_ERROR_CHECK(err_code);
+
     err_code = app_timer_start(m_bpwr_timer_id, 128, NULL);
     APP_ERROR_CHECK(err_code);
 }
@@ -145,28 +153,30 @@ void set_power(uint16_t bike_power){
     p_cool = (bike_power*adjuster)/200;
 
 
-    if (p_avg > 200)
+    if (p_avg > triac_power_max)
     {
         offset = triac_offset_max;
         cool_down_count= cool_down_count+p_cool;
-    } else if (p_avg <= 200 && p_avg > 40) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
+    }
+    // else if (p_avg <= 200 && p_avg > 40) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
+    else if (p_avg <= triac_power_max && p_avg > 20) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
     {
-        offset = (p_avg*-0.5)+160;
+        offset = (p_avg*triac_slope)+triac_offset;
         cool_down_count= cool_down_count+p_cool;
-    } else if (p_avg <= 40 && p_avg > 20)
-    {
-        if (cool_down_count > 0)
-        {
-            cool_down_count = cool_down_count-100;
-            offset = 100;
-        }
-        else
-        {
-            offset = triac_offset_min;
-        }
-        
-        
-    } else if (p_avg <= 20)
+    }
+    // else if (p_avg <= 40 && p_avg > 20)
+    // {
+    //     if (cool_down_count > 0)
+    //     {
+    //         cool_down_count = cool_down_count-100;
+    //         offset = 100;
+    //     }
+    //     else
+    //     {
+    //         offset = triac_offset_min;
+    //     }
+    // }
+    else if (p_avg <= 20)
     {
         if (cool_down_count > 0)
         {
@@ -202,7 +212,9 @@ void set_power_mode (triac_select_t t_up_down)
             if(triac_power_level > 5)
             {
                 triac_power_level = TRIAC_350;
+                
             }
+            mael_led_display(triac_power_level+1);
             break;
 
         case TRIAC_POWER_DOWN:
@@ -211,6 +223,7 @@ void set_power_mode (triac_select_t t_up_down)
             {
                 triac_power_level = TRIAC_100;
             }
+            mael_led_display(triac_power_level+1);
             break;
 
         default:

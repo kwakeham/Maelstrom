@@ -31,6 +31,26 @@ typedef enum
     MAEL_BTN_EVENT_3_TRIPLE,
 } maelbtn_event_t;
 
+typedef enum
+{
+    MAEL_LED_EVENT_NOTHING = 0,                  /**< Assign this event to an action to prevent the action from generating an event (disable the action). */
+    MAEL_LED_POWER_1,                       /**< LED Power setting 1 (100 watt) */
+    MAEL_LED_POWER_2,                       /**< LED Power setting 2 (150 watt) */
+    MAEL_LED_POWER_3,                       /**< LED Power setting 3 (200 watt) */
+    MAEL_LED_POWER_4,                       /**< LED Power setting 4 (250 watt) */
+    MAEL_LED_POWER_5,                       /**< LED Power setting 5 (300 watt) */
+    MAEL_LED_POWER_6,                       /**< LED Power setting 6 (350 watt) */
+    MAEL_LED_BLUE_3,                        /**< LED 3 BLUE */
+    MAEL_LED_BLUE_2,                        /**< LED Lower 2 BLUE */
+    MAEL_LED_BLUE_1,                        /**< LED Lower 1 BLUE */
+    MAEL_LED_GREEN_3,                       /**< LED 3 GREEN */
+    MAEL_LED_GREEN_2,                       /**< LED Lower 2 GREEN */
+    MAEL_LED_GREEN_1,                       /**< LED Lower 1 GREEN */
+    MAEL_LED_RED_3,                         /**< LED 3 RED */
+    MAEL_LED_RED_2,                         /**< LED Lower 2 RED */
+    MAEL_LED_RED_1,                         /**< LED Lower 1 RED */
+} mael_led_event_t;
+
 
 
 /**@brief maelBTN module event callback function type.
@@ -117,6 +137,11 @@ void mael_init_leds();
 void mael_test_leds();
 
 void mael_led_toggle();
+
+void override_callback(void * p_context);
+
+void mael_led_display(mael_led_event_t led_status);
+
 
 #ifdef __cplusplus
 }

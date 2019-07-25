@@ -37,6 +37,8 @@ void timeout_handler(void * p_context);
 
 void timeout_handler2(void * p_context);
 
+// void led_timeout_handler(void * p_context);
+
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
 
 void gpio_init(void);

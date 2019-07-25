@@ -24,8 +24,11 @@
 APP_TIMER_DEF(m_button_action);
 APP_TIMER_DEF(m_repeat_action);
 
+APP_TIMER_DEF(m_input_override);
+
 #define BUTTON_STATE_POLL_INTERVAL_MS  5UL
 #define MULTI_PRESS_INTERVAL_MS  600UL
+#define LED_SHOW_INTERVAL  8000UL
 
 #define LONG_PRESS(MS)    (uint32_t)(MS)/BUTTON_STATE_POLL_INTERVAL_MS 
 #define DOUBLE_PRESS(MS)    (uint32_t)(MS)/BUTTON_STATE_POLL_INTERVAL_MS 
@@ -46,6 +49,8 @@ static bool long_press_active_3;
 static int32_t cnt_1 = 0;
 static int32_t cnt_2 = 0;
 static int32_t cnt_3 = 0;
+
+bool show_setting_led = false;
 
 
 void button_timeout_handler (void * p_context)
@@ -328,6 +333,9 @@ void mael_buttons_init(maelbtn_event_callback_t callback)
     err_code = app_timer_create(&m_repeat_action, APP_TIMER_MODE_SINGLE_SHOT, repeat_timeout_handler);
     APP_ERROR_CHECK(err_code);
 
+    err_code = app_timer_create(&m_input_override, APP_TIMER_MODE_SINGLE_SHOT, override_callback);
+    APP_ERROR_CHECK(err_code);
+
     mael_init_leds();
 }
 
@@ -412,4 +420,197 @@ void mael_test_leds()
 void mael_led_toggle()
 {
     nrf_gpio_pin_toggle(LED_1R);
+}
+
+
+
+void override_callback(void * p_context)
+{
+    mael_led_display(MAEL_LED_EVENT_NOTHING);
+    NRF_LOG_INFO ("sent to clear");
+}
+
+void mael_led_display(mael_led_event_t led_status)
+{
+    NRF_LOG_INFO("ENUM:          %d",led_status);
+    uint32_t err_code;
+    if(!show_setting_led)
+    {
+        switch (led_status)
+        {
+        case MAEL_LED_EVENT_NOTHING:
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
+            break;
+
+        case MAEL_LED_POWER_1:
+            nrf_gpio_pin_clear(LED_3G);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
+            break;
+
+        case MAEL_LED_POWER_2:
+            nrf_gpio_pin_clear(LED_2G);
+            nrf_gpio_pin_clear(LED_3G);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
+            break;
+
+        case MAEL_LED_POWER_3:
+            nrf_gpio_pin_clear(LED_1G);
+            nrf_gpio_pin_clear(LED_2G);
+            nrf_gpio_pin_clear(LED_3G);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
+            break;
+
+        case MAEL_LED_POWER_4:
+            nrf_gpio_pin_clear(LED_3B);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            break;
+
+        case MAEL_LED_POWER_5:
+            nrf_gpio_pin_clear(LED_2B);
+            nrf_gpio_pin_clear(LED_3B);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            break;
+
+        case MAEL_LED_POWER_6:
+            nrf_gpio_pin_clear(LED_1B);
+            nrf_gpio_pin_clear(LED_2B);
+            nrf_gpio_pin_clear(LED_3B);
+
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            break;
+
+        case MAEL_LED_BLUE_3:
+            nrf_gpio_pin_clear(LED_1B);
+            nrf_gpio_pin_clear(LED_2B);
+            nrf_gpio_pin_clear(LED_3B);
+            break;
+
+        case MAEL_LED_BLUE_2:
+            nrf_gpio_pin_clear(LED_2B);
+            nrf_gpio_pin_clear(LED_3B);
+            break;
+
+        case MAEL_LED_BLUE_1:
+            nrf_gpio_pin_clear(LED_3B);
+            break;
+
+        case MAEL_LED_GREEN_3:
+            nrf_gpio_pin_clear(LED_1G);
+            nrf_gpio_pin_clear(LED_2G);
+            nrf_gpio_pin_clear(LED_3G);
+            break;
+
+        case MAEL_LED_GREEN_2:
+            nrf_gpio_pin_clear(LED_2G);
+            nrf_gpio_pin_clear(LED_3G);
+            break;
+
+        case MAEL_LED_GREEN_1:
+            nrf_gpio_pin_clear(LED_3G);
+            break;
+
+        case MAEL_LED_RED_3:
+            nrf_gpio_pin_clear(LED_1R);
+            nrf_gpio_pin_clear(LED_2R);
+            nrf_gpio_pin_clear(LED_3R);
+            break;
+
+        case MAEL_LED_RED_2:
+            nrf_gpio_pin_clear(LED_2R);
+            nrf_gpio_pin_clear(LED_3R);
+            break;
+
+        case MAEL_LED_RED_1:
+            nrf_gpio_pin_clear(LED_3R);
+            break;
+        
+        default:
+            break;
+        } // End switch
+        if (led_status == MAEL_LED_EVENT_NOTHING)
+        {
+            err_code =  app_timer_stop(m_input_override);
+            APP_ERROR_CHECK(err_code);
+        } else
+        {
+            err_code =  app_timer_stop(m_input_override);
+            APP_ERROR_CHECK(err_code);
+            err_code = app_timer_start(m_input_override, APP_TIMER_TICKS(LED_SHOW_INTERVAL), NULL);
+            APP_ERROR_CHECK(err_code);
+        }
+        
+    } else
+    { // This all needs fixing below this
+        switch (led_status)
+        {
+        case MAEL_LED_EVENT_NOTHING:
+            nrf_gpio_pin_set(LED_1R);
+            nrf_gpio_pin_set(LED_2R);
+            nrf_gpio_pin_set(LED_3R);
+            nrf_gpio_pin_set(LED_1G);
+            nrf_gpio_pin_set(LED_2G);
+            nrf_gpio_pin_set(LED_3G);
+            nrf_gpio_pin_set(LED_1B);
+            nrf_gpio_pin_set(LED_2B);
+            nrf_gpio_pin_set(LED_3B);
+            break;
+        
+        default:
+            break;
+        }
+        show_setting_led = false;
+    }
+    
+    
+
+
 }
