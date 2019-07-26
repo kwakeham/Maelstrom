@@ -47,6 +47,10 @@ void set_power(uint16_t bike_power);
 
 void cool_down(uint16_t bike_power);
 
+void triac_set_normal(void);
+
+void triac_set_setting_mode(void);
+
 void set_power_mode (triac_select_t t_up_down);
 
 void triac_settings(void);

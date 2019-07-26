@@ -17,6 +17,7 @@
 #include "mael_btn_led.h"
 #include "app_util_platform.h"
 #include "nrf_delay.h"
+#include "triac.h"
 
 
 
@@ -428,6 +429,7 @@ void override_callback(void * p_context)
 {
     mael_led_display(MAEL_LED_EVENT_NOTHING);
     NRF_LOG_INFO ("sent to clear");
+    triac_set_normal();
 }
 
 void mael_led_display(mael_led_event_t led_status)

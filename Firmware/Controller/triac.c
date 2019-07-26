@@ -39,6 +39,8 @@ uint16_t triac_power_max = 200;
 float triac_slope = -0.5;
 uint16_t triac_offset = 150;
 
+bool m_triac_setting = false;
+
 void timeout_handler(void * p_context)
 {
     // nrf_drv_gpiote_out_set(BSP_LED_1);
@@ -149,45 +151,47 @@ void set_power(uint16_t bike_power){
     p_diff = (p_diff*adjuster)/10;
     NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_avg = p_avg + p_diff;
-
     p_cool = (bike_power*adjuster)/200;
 
+    if (!m_triac_setting)
+    {
+        if (p_avg > triac_power_max)
+        {
+            offset = triac_offset_max;
+            cool_down_count= cool_down_count+p_cool;
+        }
+        // else if (p_avg <= 200 && p_avg > 40) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
+        else if (p_avg <= triac_power_max && p_avg > 20) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
+        {
+            offset = (p_avg*triac_slope)+triac_offset;
+            cool_down_count= cool_down_count+p_cool;
+        }
+        // else if (p_avg <= 40 && p_avg > 20)
+        // {
+        //     if (cool_down_count > 0)
+        //     {
+        //         cool_down_count = cool_down_count-100;
+        //         offset = 100;
+        //     }
+        //     else
+        //     {
+        //         offset = triac_offset_min;
+        //     }
+        // }
+        else if (p_avg <= 20)
+        {
+            if (cool_down_count > 0)
+            {
+                cool_down_count = cool_down_count-100;
+                offset = 100;
+            }
+            else
+            {
+                offset = 500;
+            }
+        } //end else if p_avg <=20
+    } //end m_triac_setting
 
-    if (p_avg > triac_power_max)
-    {
-        offset = triac_offset_max;
-        cool_down_count= cool_down_count+p_cool;
-    }
-    // else if (p_avg <= 200 && p_avg > 40) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
-    else if (p_avg <= triac_power_max && p_avg > 20) //(p_avg <= 200 && p_avg > 100) //This is for -0.8 and 220
-    {
-        offset = (p_avg*triac_slope)+triac_offset;
-        cool_down_count= cool_down_count+p_cool;
-    }
-    // else if (p_avg <= 40 && p_avg > 20)
-    // {
-    //     if (cool_down_count > 0)
-    //     {
-    //         cool_down_count = cool_down_count-100;
-    //         offset = 100;
-    //     }
-    //     else
-    //     {
-    //         offset = triac_offset_min;
-    //     }
-    // }
-    else if (p_avg <= 20)
-    {
-        if (cool_down_count > 0)
-        {
-            cool_down_count = cool_down_count-100;
-            offset = 100;
-        }
-        else
-        {
-            offset = 500;
-        }
-    } 
     NRF_LOG_INFO("offset:                  %u c", offset);
     NRF_LOG_INFO("p_avg:                  %u W", p_avg);
     NRF_LOG_INFO("cooldowncount            %i c",cool_down_count);
@@ -202,6 +206,17 @@ void cool_down(uint16_t bike_power)
     }
 
 }
+
+void triac_set_normal(void)
+{
+    m_triac_setting = false;
+}
+
+void triac_set_setting_mode(void)
+{
+    m_triac_setting = true;
+}
+
 
 void set_power_mode (triac_select_t t_up_down)
 {
@@ -254,7 +269,7 @@ void set_triac_offset_max(void)
     NRF_LOG_INFO("triac max offset =         %d",offset);
     triac_settings();
     mael_led_display((triac_offset_max/5)+3); //20 = 4 ~ 7,  60 = 12 ~ 15
-
+    triac_set_setting_mode();
 }
 
 void set_triac_offset_max_reset(void)
@@ -264,7 +279,7 @@ void set_triac_offset_max_reset(void)
     NRF_LOG_INFO("triac max offset reset =         %d",offset);
     triac_settings();
     mael_led_display((triac_offset_max/5)+3); //20 = 4 ~ 7,  60 = 12 ~ 15
-
+    triac_set_setting_mode();
 }
 
 void set_triac_offset_min(void)
@@ -278,7 +293,7 @@ void set_triac_offset_min(void)
     NRF_LOG_INFO("triac min offset =         %d",offset);
     triac_settings();
     mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
-
+    triac_set_setting_mode();
 }
 
 void set_triac_offset_min_reset(void)
@@ -288,6 +303,7 @@ void set_triac_offset_min_reset(void)
     NRF_LOG_INFO("triac max offset reset =         %d",offset);
     triac_settings();
     mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
+    triac_set_setting_mode();
 }
 
 
