@@ -48,7 +48,7 @@ typedef enum
     MAEL_LED_GREEN_1,                       /**< LED Lower 1 GREEN */
     MAEL_LED_RED_3,                         /**< LED 3 RED */
     MAEL_LED_RED_2,                         /**< LED Lower 2 RED */
-    MAEL_LED_RED_1,                         /**< LED Lower 1 RED */
+    MAEL_LED_RED_1,                         /**< LED Lower 1 RED */ //15
 } mael_led_event_t;
 
 
@@ -142,6 +142,7 @@ void override_callback(void * p_context);
 
 void mael_led_display(mael_led_event_t led_status);
 
+void mael_led_clear_all(void);
 
 #ifdef __cplusplus
 }

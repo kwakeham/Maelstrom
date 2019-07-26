@@ -16,11 +16,14 @@
 #include "mael_btn_led.h"
 
 
+#define BWPR_TIMEOUT  5000UL
+
+
 APP_TIMER_DEF(m_triac_timer_id);
 
 APP_TIMER_DEF(m_bpwr_timer_id); 
 
-// APP_TIMER_DEF(m_led_id); 
+APP_TIMER_DEF(m_bpwr_timeout_timer_id); 
 
 bool ZC_pulse = 1;
 uint32_t offset = 500;
@@ -59,6 +62,11 @@ void timeout_handler(void * p_context)
 void timeout_handler2(void * p_context) //this is to keep the timers alive!!!!
 {
 
+}
+
+void no_signal_timeout_handler(void * p_context)
+{
+    set_power(0);
 }
 
 
@@ -121,18 +129,21 @@ void gpio_init(void)
     NRF_LOG_INFO("Timer repeated ");
     APP_ERROR_CHECK(err_code);
 
-    // err_code = app_timer_create(&m_led_id, APP_TIMER_MODE_SINGLE_SHOT, led_timeout_handler);
-    // NRF_LOG_INFO("Timer repeated ");
-    // APP_ERROR_CHECK(err_code);
+    err_code = app_timer_create(&m_bpwr_timeout_timer_id, APP_TIMER_MODE_SINGLE_SHOT, no_signal_timeout_handler);
+    NRF_LOG_INFO("bpwr timeout repeated ");
+    APP_ERROR_CHECK(err_code);
 
     err_code = app_timer_start(m_bpwr_timer_id, 128, NULL);
     APP_ERROR_CHECK(err_code);
 }
 
-void set_power(uint16_t bike_power){
+void set_power(uint16_t bike_power)
+{
 
+    ret_code_t err_code;
     int16_t p_diff; //power difference
     uint8_t adjuster; //The calculated adjuster difference, to be calculated
+    uint8_t cool_down_adjuster; //The calculated adjuster difference, to be calculated
     uint16_t p_cool;
 
     time = app_timer_cnt_get();
@@ -140,6 +151,7 @@ void set_power(uint16_t bike_power){
     time_old = time;
     NRF_LOG_INFO("time:                  %u s", time_diff);
     adjuster = time_diff/8180;
+    cool_down_adjuster=time_diff/32768;
     NRF_LOG_INFO("factor1:                  %u s", adjuster);
     if (adjuster > 10)
     {
@@ -151,7 +163,7 @@ void set_power(uint16_t bike_power){
     p_diff = (p_diff*adjuster)/10;
     NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_avg = p_avg + p_diff;
-    p_cool = (bike_power*adjuster)/200;
+    p_cool = (bike_power*adjuster)/4;
 
     if (!m_triac_setting)
     {
@@ -182,15 +194,21 @@ void set_power(uint16_t bike_power){
         {
             if (cool_down_count > 0)
             {
-                cool_down_count = cool_down_count-100;
-                offset = 100;
+                cool_down_count = cool_down_count-(triac_power_max*cool_down_adjuster*12);
+                offset = triac_offset_min-triac_offset_max;
             }
             else
             {
                 offset = 500;
+                cool_down_count = 0;
             }
         } //end else if p_avg <=20
     } //end m_triac_setting
+
+    err_code =  app_timer_stop(m_bpwr_timeout_timer_id);
+    APP_ERROR_CHECK(err_code);
+    err_code = app_timer_start(m_bpwr_timeout_timer_id, APP_TIMER_TICKS(BWPR_TIMEOUT), NULL);
+    APP_ERROR_CHECK(err_code);
 
     NRF_LOG_INFO("offset:                  %u c", offset);
     NRF_LOG_INFO("p_avg:                  %u W", p_avg);
