@@ -151,13 +151,17 @@ void set_power(uint16_t bike_power)
     time_old = time;
     NRF_LOG_INFO("time:                  %u s", time_diff);
     adjuster = time_diff/8180;
-    cool_down_adjuster=time_diff/32768;
+    cool_down_adjuster=(time_diff+1638)/3277;
     NRF_LOG_INFO("factor1:                  %u s", adjuster);
     if (adjuster > 10)
     {
         adjuster = 10;
     }
-    NRF_LOG_INFO("factor2:                  %u s", adjuster);
+    if (cool_down_adjuster > 50)
+    {
+        cool_down_adjuster = 50;
+    }
+    NRF_LOG_INFO("factor2:                  %u s", cool_down_adjuster);
     p_diff = bike_power - p_avg;
     NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_diff = (p_diff*adjuster)/10;
@@ -192,9 +196,9 @@ void set_power(uint16_t bike_power)
         // }
         else if (p_avg <= 20)
         {
-            if (cool_down_count > 0)
+            if (cool_down_count >= 0)
             {
-                cool_down_count = cool_down_count-(triac_power_max*cool_down_adjuster*12);
+                cool_down_count = cool_down_count-(triac_power_max*cool_down_adjuster*12/10);
                 offset = triac_offset_min-triac_offset_max;
             }
             else
@@ -228,6 +232,7 @@ void cool_down(uint16_t bike_power)
 void triac_set_normal(void)
 {
     m_triac_setting = false;
+    offset = 500;
 }
 
 void triac_set_setting_mode(void)
