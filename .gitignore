@@ -10,3 +10,5 @@ Firmware/Controller/Maelstrom10/s212/armgcc/_build/
 Firmware/Controller/Maelstrom10/s332/armgcc/_build/
 
 Firmware/Bootloader/Maelstrom10/armgcc/_build/
+
+Firmware/Controller/Release/

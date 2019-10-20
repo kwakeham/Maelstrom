@@ -16,7 +16,7 @@
 #include "mael_btn_led.h"
 
 
-#define BWPR_TIMEOUT  5000UL
+#define BWPR_TIMEOUT  8000UL
 
 
 APP_TIMER_DEF(m_triac_timer_id);
@@ -32,6 +32,10 @@ uint32_t time_old = 0;
 uint32_t time_diff = 0;
 uint32_t time = 0;
 int32_t cool_down_count = 0;
+
+uint32_t zc_time = 0;
+uint32_t zc_time_old = 0;
+uint32_t zc_time_diff = 0;
 
 triac_settings_t triac_power_level = TRIAC_200;
 
@@ -64,6 +68,7 @@ void timeout_handler2(void * p_context) //this is to keep the timers alive!!!!
 
 }
 
+//if there is no signal then turn off the fan
 void no_signal_timeout_handler(void * p_context)
 {
     set_power(0);
@@ -74,13 +79,16 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     ret_code_t err_code;
     // nrf_drv_gpiote_out_toggle(PIN_OUT);
+    zc_time = app_timer_cnt_get();
+    zc_time_diff = zc_time - zc_time_old;
+    zc_time_old = zc_time;
     if (offset < 500)
     {
         err_code = app_timer_start(m_triac_timer_id, offset, NULL);
         APP_ERROR_CHECK(err_code);
         ZC_pulse = 1;
     }
-    // NRF_LOG_INFO("Input");
+    // NRF_LOG_INFO("time = %d",zc_time_diff);
     
 }
 
@@ -125,6 +133,7 @@ void gpio_init(void)
     NRF_LOG_INFO("Timer Create");
     APP_ERROR_CHECK(err_code);
 
+    //Keeps timers alive for other reasons
     err_code = app_timer_create(&m_bpwr_timer_id, APP_TIMER_MODE_REPEATED, timeout_handler2);
     NRF_LOG_INFO("Timer repeated ");
     APP_ERROR_CHECK(err_code);
@@ -196,7 +205,7 @@ void set_power(uint16_t bike_power)
         // }
         else if (p_avg <= 20)
         {
-            if (cool_down_count >= 0)
+            if (cool_down_count > 0)
             {
                 cool_down_count = cool_down_count-(triac_power_max*cool_down_adjuster*12/10);
                 offset = triac_offset_min-triac_offset_max;
@@ -209,6 +218,8 @@ void set_power(uint16_t bike_power)
         } //end else if p_avg <=20
     } //end m_triac_setting
 
+
+//this sets the timer to run for power time out
     err_code =  app_timer_stop(m_bpwr_timeout_timer_id);
     APP_ERROR_CHECK(err_code);
     err_code = app_timer_start(m_bpwr_timeout_timer_id, APP_TIMER_TICKS(BWPR_TIMEOUT), NULL);
