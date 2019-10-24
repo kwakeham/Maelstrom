@@ -240,7 +240,7 @@ INC_FOLDERS += \
   $(PROJ_DIR) \
   $(SDK_ROOT)/components/libraries/log/src \
   $(SDK_ROOT)/components/ant/ant_key_manager \
-  $(SDK_ROOT)/components\ant\ant_key_manager\config \
+  $(SDK_ROOT)/components/ant/ant_key_manager\config \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_bpwr/simulator \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_common/pages \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_bpwr/utils \
