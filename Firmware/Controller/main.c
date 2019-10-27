@@ -79,6 +79,8 @@
 #include "app_scheduler.h"
 #include "ant_interface.h"
 #include "nrf_delay.h"
+#include "nrf_fstorage_sd.h" //does this need to be here? probably not
+#include "titan_mem.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -115,28 +117,28 @@ NRF_SDH_ANT_OBSERVER(m_ant_observer, ANT_BPWR_ANT_OBSERVER_PRIO,
 
 /**@brief Function for handling bsp events.
  */
-void bsp_evt_handler(bsp_event_t evt)
-{
-    ret_code_t            err_code;
-    ant_bpwr_page1_data_t page1;
+// void bsp_evt_handler(bsp_event_t evt)
+// {
+//     ret_code_t            err_code;
+//     ant_bpwr_page1_data_t page1;
 
-    switch (evt)
-    {
-        case BSP_EVENT_KEY_0:
-            // request to calibrating the sensor
-            page1    = ANT_BPWR_GENERAL_CALIB_REQUEST();
-            err_code = ant_bpwr_calib_request(&m_ant_bpwr, &page1);
-            APP_ERROR_CHECK(err_code);
-            break;
+//     switch (evt)
+//     {
+//         case BSP_EVENT_KEY_0:
+//             // request to calibrating the sensor
+//             page1    = ANT_BPWR_GENERAL_CALIB_REQUEST();
+//             err_code = ant_bpwr_calib_request(&m_ant_bpwr, &page1);
+//             APP_ERROR_CHECK(err_code);
+//             break;
 
-        case BSP_EVENT_SLEEP:
-            nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
-            break;
+//         case BSP_EVENT_SLEEP:
+//             nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
+//             break;
 
-        default:
-            break;
-    }
-}
+//         default:
+//             break;
+//     }
+// }
 
 /**
  * @brief Function for shutdown events.
@@ -394,9 +396,15 @@ int main(void)
 {
     log_init();
     utils_setup();
+
+    storage_init();
+    mem_test();
+
     softdevice_setup();
     profile_setup();
     scheduler_init();
+
+
 
     mael_buttons_init(test_callback);
 

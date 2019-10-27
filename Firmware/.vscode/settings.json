@@ -14,6 +14,7 @@
         "nrf_sdh_ant.h": "c",
         "type_traits": "c",
         "nrf_fstorage_sd.h": "c",
-        "nrf_fstorage.h": "c"
+        "nrf_fstorage.h": "c",
+        "titan_mem.h": "c"
     }
 }
