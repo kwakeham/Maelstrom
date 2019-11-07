@@ -12,11 +12,21 @@
 #include "app_timer.h"
 #include "nrf_drv_gpiote.h"
 #include "triac.h"
-#include "nrf_log.h"
+// #include "nrf_log.h"
 #include "mael_btn_led.h"
 
 
-#define BWPR_TIMEOUT  8000UL
+#define NRF_LOG_MODULE_NAME triac
+#if NRF_TRIAC_LOG_ENABLED
+#else // ANT_BPWR_LOG_ENABLED
+#define NRF_LOG_LEVEL       3
+#endif // ANT_BPWR_LOG_ENABLED
+#include "nrf_log.h"
+
+NRF_LOG_MODULE_REGISTER();
+
+
+#define BWPR_TIMEOUT  5000UL
 
 
 APP_TIMER_DEF(m_triac_timer_id);
@@ -36,6 +46,11 @@ int32_t cool_down_count = 0;
 uint32_t zc_time = 0;
 uint32_t zc_time_old = 0;
 uint32_t zc_time_diff = 0;
+
+//Variables for storing old crank page data
+uint8_t old_crank_event_count;
+uint16_t old_crank_period;
+uint16_t old_crank_accumulated_torque;
 
 triac_settings_t triac_power_level = TRIAC_200;
 
@@ -158,10 +173,10 @@ void set_power(uint16_t bike_power)
     time = app_timer_cnt_get();
     time_diff = time - time_old;
     time_old = time;
-    NRF_LOG_INFO("time:                  %u s", time_diff);
+    // NRF_LOG_INFO("time:                  %u s", time_diff);
     adjuster = time_diff/8180;
     cool_down_adjuster=(time_diff+1638)/3277;
-    NRF_LOG_INFO("factor1:                  %u s", adjuster);
+    // NRF_LOG_INFO("factor1:                  %u s", adjuster);
     if (adjuster > 10)
     {
         adjuster = 10;
@@ -170,11 +185,11 @@ void set_power(uint16_t bike_power)
     {
         cool_down_adjuster = 50;
     }
-    NRF_LOG_INFO("factor2:                  %u s", cool_down_adjuster);
+    // NRF_LOG_INFO("factor2:                  %u s", cool_down_adjuster);
     p_diff = bike_power - p_avg;
-    NRF_LOG_INFO("p_diff:                  %i W", p_diff);
+    // NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_diff = (p_diff*adjuster)/10;
-    NRF_LOG_INFO("p_diff:                  %i W", p_diff);
+    // NRF_LOG_INFO("p_diff:                  %i W", p_diff);
     p_avg = p_avg + p_diff;
     p_cool = (bike_power*adjuster)/4;
 
@@ -225,10 +240,50 @@ void set_power(uint16_t bike_power)
     err_code = app_timer_start(m_bpwr_timeout_timer_id, APP_TIMER_TICKS(BWPR_TIMEOUT), NULL);
     APP_ERROR_CHECK(err_code);
 
-    NRF_LOG_INFO("offset:                  %u c", offset);
-    NRF_LOG_INFO("p_avg:                  %u W", p_avg);
-    NRF_LOG_INFO("cooldowncount            %i c",cool_down_count);
+    // NRF_LOG_INFO("offset:                  %u c", offset);
+    // NRF_LOG_INFO("p_avg:                  %u W", p_avg);
+    // NRF_LOG_INFO("cooldowncount            %i c",cool_down_count);
     
+    NRF_LOG_INFO("basic_bike_power:                   %u c", bike_power);
+}
+
+void set_crank_power(uint8_t crank_event_count, uint16_t crank_period, uint16_t crank_accumulated_torque)
+{
+    float crank_average_angular_vel;
+    float crank_average_torque;
+    float crank_average_power;
+    if (crank_event_count == old_crank_event_count)
+    {
+        // NRF_LOG_INFO ("nothing to see here by's");
+    } else
+    {
+        // NRF_LOG_INFO("crank_event_count:                  %u c", crank_event_count);
+        // NRF_LOG_INFO("crank_period:                  %u W", crank_period);
+        // NRF_LOG_INFO("crank_accumulated_torque            %u c",crank_accumulated_torque);
+
+        uint8_t crank_event_count_diff = crank_event_count - old_crank_event_count;
+        // NRF_LOG_INFO("crank_event_count_diff:                   %u c", crank_event_count_diff);
+        uint16_t crank_period_diff = crank_period - old_crank_period;
+        // NRF_LOG_INFO("crank_period_diff:                   %u c", crank_period_diff);
+        uint16_t crank_accumulated_torque_diff = crank_accumulated_torque - old_crank_accumulated_torque;
+        // NRF_LOG_INFO("crank_accumulated_torque_diff:                   %u c", crank_accumulated_torque_diff);
+
+        crank_average_angular_vel = (2.0*3.141592654*((float)crank_event_count_diff))/((float)crank_period_diff/2048.0);
+        // NRF_LOG_INFO("crank_average_angular_vel:                   "NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(crank_average_angular_vel));
+        crank_average_torque =  (float)crank_accumulated_torque_diff/(32.0*(float)crank_event_count_diff);
+        // NRF_LOG_INFO("crank_average_torque:                   "NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(crank_average_torque));
+        crank_average_power = crank_average_angular_vel*crank_average_torque;
+        NRF_LOG_INFO("crank_average_power:                   "NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(crank_average_power));
+
+        uint16_t bike_power = (crank_average_power+0.5); //round this for more consistent power
+        old_crank_event_count = crank_event_count;
+        old_crank_period = crank_period;
+        old_crank_accumulated_torque = crank_accumulated_torque;
+        NRF_LOG_DEBUG("crank_bike_power:                   %u c", bike_power);
+        set_power(bike_power);
+        mael_led_toggle();
+    }
+
 }
 
 void cool_down(uint16_t bike_power)

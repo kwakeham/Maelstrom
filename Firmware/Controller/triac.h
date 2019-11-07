@@ -16,6 +16,8 @@
 #define PIN_ZC 18 //old 11
 #define PIN_OUT 20  //old 12
 
+#define NRF_TRIAC_LOG_ENABLED 1
+
 typedef enum
 {
     TRIAC_100,                       //
@@ -46,6 +48,8 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
 void gpio_init(void);
 
 void set_power(uint16_t bike_power);
+
+void set_crank_power(uint8_t crank_event_count, uint16_t crank_period, uint16_t crank_accumulated_torque);
 
 void cool_down(uint16_t bike_power);
 

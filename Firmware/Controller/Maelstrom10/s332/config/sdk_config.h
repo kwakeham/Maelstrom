@@ -117,7 +117,7 @@
 // <e> ANT_BPWR_LOG_ENABLED - Enables general logging in the module.
 //==========================================================
 #ifndef ANT_BPWR_LOG_ENABLED
-#define ANT_BPWR_LOG_ENABLED 1
+#define ANT_BPWR_LOG_ENABLED 0
 #endif
 // <o> ANT_BPWR_LOG_LEVEL  - Default Severity level
  
@@ -152,7 +152,7 @@
 // <e> ANT_BPWR_COMMON_LOG_ENABLED - Enables logging of BPWR tracing common data.
 //==========================================================
 #ifndef ANT_BPWR_COMMON_LOG_ENABLED
-#define ANT_BPWR_COMMON_LOG_ENABLED 1
+#define ANT_BPWR_COMMON_LOG_ENABLED 0
 #endif
 // <o> ANT_BPWR_COMMON_LOG_LEVEL  - Default Severity level
  
@@ -187,7 +187,7 @@
 // <e> ANT_BPWR_PAGE_TORQUE_LOG_ENABLED - Enables logging of BPWR torque page in the module.
 //==========================================================
 #ifndef ANT_BPWR_PAGE_TORQUE_LOG_ENABLED
-#define ANT_BPWR_PAGE_TORQUE_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_TORQUE_LOG_ENABLED 0
 #endif
 // <o> ANT_BPWR_PAGE_TORQUE_LOG_LEVEL  - Default Severity level
  
@@ -257,7 +257,7 @@
 // <e> ANT_BPWR_PAGE_16_LOG_ENABLED - Enables logging of BPWR page 16 in the module.
 //==========================================================
 #ifndef ANT_BPWR_PAGE_16_LOG_ENABLED
-#define ANT_BPWR_PAGE_16_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_16_LOG_ENABLED 0
 #endif
 // <o> ANT_BPWR_PAGE_16_LOG_LEVEL  - Default Severity level
  
@@ -292,7 +292,7 @@
 // <e> ANT_BPWR_PAGE_17_LOG_ENABLED - Enables logging of BPWR page 17 in the module.
 //==========================================================
 #ifndef ANT_BPWR_PAGE_17_LOG_ENABLED
-#define ANT_BPWR_PAGE_17_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_17_LOG_ENABLED 0
 #endif
 // <o> ANT_BPWR_PAGE_17_LOG_LEVEL  - Default Severity level
  
@@ -327,7 +327,7 @@
 // <e> ANT_BPWR_PAGE_18_LOG_ENABLED - Enables logging of BPWR page 18 in the module.
 //==========================================================
 #ifndef ANT_BPWR_PAGE_18_LOG_ENABLED
-#define ANT_BPWR_PAGE_18_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_18_LOG_ENABLED 0
 #endif
 // <o> ANT_BPWR_PAGE_18_LOG_LEVEL  - Default Severity level
  

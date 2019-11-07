@@ -79,8 +79,8 @@
 #include "app_scheduler.h"
 #include "ant_interface.h"
 #include "nrf_delay.h"
-#include "nrf_fstorage_sd.h" //does this need to be here? probably not
-#include "titan_mem.h"
+// #include "nrf_fstorage_sd.h" //does this need to be here? probably not
+// #include "titan_mem.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -179,13 +179,16 @@ void ant_bpwr_evt_handler(ant_bpwr_profile_t * p_profile, ant_bpwr_evt_t event)
             // calibration data received from sensor
             NRF_LOG_DEBUG("Received calibration data");
             break;
-        case ANT_BPWR_PAGE_16_UPDATED:
+        case ANT_BPWR_PAGE_16_UPDATED: //Basic power
             set_power(p_profile->BPWR_PROFILE_instantaneous_power);
             mael_led_toggle();
             /* fall through */
-        case ANT_BPWR_PAGE_17_UPDATED:
+        case ANT_BPWR_PAGE_17_UPDATED: //wheel torque?
             /* fall through */
-        case ANT_BPWR_PAGE_18_UPDATED:
+        case ANT_BPWR_PAGE_18_UPDATED: //crank torque, apparently ctf isn't worth it?
+            set_crank_power(p_profile->BPWR_PROFILE_crank_update_event_count, 
+                p_profile->BPWR_PROFILE_crank_period,
+                p_profile->BPWR_PROFILE_crank_accumulated_torque);
             /* fall through */
         case ANT_BPWR_PAGE_80_UPDATED:
             /* fall through */
@@ -397,8 +400,8 @@ int main(void)
     log_init();
     utils_setup();
 
-    storage_init();
-    mem_test();
+    // storage_init();
+    // mem_test();
 
     softdevice_setup();
     profile_setup();
