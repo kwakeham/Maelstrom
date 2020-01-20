@@ -22,6 +22,7 @@
 #define NRF_LOG_LEVEL       3
 #endif // ANT_BPWR_LOG_ENABLED
 #include "nrf_log.h"
+#include "titan_mem.h"
 
 NRF_LOG_MODULE_REGISTER();
 
@@ -283,7 +284,6 @@ void set_crank_power(uint8_t crank_event_count, uint16_t crank_period, uint16_t 
         set_power(bike_power);
         mael_led_toggle();
     }
-
 }
 
 void cool_down(uint16_t bike_power)
@@ -345,6 +345,9 @@ void triac_settings(void)
     triac_slope = (float)((float)triac_offset_min - (float)triac_offset)/(float)(triac_power_min);
     NRF_LOG_INFO( "slope: "NRF_LOG_FLOAT_MARKER , NRF_LOG_FLOAT(triac_slope));
     NRF_LOG_INFO( "offset: %u", triac_offset);
+    triac_store_settings(); //store settings
+    mem_mael_write();
+    mem_ant_id_read();
 }
 
 void set_triac_offset_max(void)
@@ -394,6 +397,12 @@ void set_triac_offset_min_reset(void)
     triac_settings();
     mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
     triac_set_setting_mode(); //Block the set_power_mode
+    
+}
+
+void triac_store_settings(void)
+{
+    mem_mael_triac_update(triac_offset_min, triac_offset_max, triac_power_level);
 }
 
 

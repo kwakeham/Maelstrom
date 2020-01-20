@@ -80,7 +80,7 @@
 #include "ant_interface.h"
 #include "nrf_delay.h"
 // #include "nrf_fstorage_sd.h" //does this need to be here? probably not
-// #include "titan_mem.h"
+#include "titan_mem.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -323,7 +323,7 @@ void test_callback(maelbtn_event_t event_list)
                 sd_ant_channel_id_get(BPWR_CHANNEL_NUM, &mael_devicenumber, &mael_devicetype, &mael_TransmitType);
                 NRF_LOG_INFO ("Device number %d",mael_devicenumber);
                 mael_devicenumber = 0;
-                nrf_delay_ms(200);
+                nrf_delay_ms(400);
                 sd_ant_channel_id_set(BPWR_CHANNEL_NUM, mael_devicenumber, mael_devicetype, mael_TransmitType);
                 ret_code_t err_code = ant_bpwr_disp_open(&m_ant_bpwr);
                 APP_ERROR_CHECK(err_code);
@@ -400,8 +400,12 @@ int main(void)
     log_init();
     utils_setup();
 
-    // storage_init();
+    storage_init();
     // mem_test();
+    // mem_ant_id_erase();
+    // mem_ant_id_write();
+    mem_ant_id_read();
+    // mem_ant_id_write();
 
     softdevice_setup();
     profile_setup();

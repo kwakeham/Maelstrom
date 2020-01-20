@@ -69,4 +69,6 @@ void set_triac_offset_min(void);
 
 void set_triac_offset_min_reset(void);
 
+void triac_store_settings(void);
+
 #endif
