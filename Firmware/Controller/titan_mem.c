@@ -14,23 +14,29 @@
 #include "nrf_sdh_ant.h"
 #include "app_error.h"
 #include "ant_interface.h"
+#include "nrf_delay.h"
+
+#define MEM_START 0x40000
+#define MEM_END 0x40fff
 
 // static nrf_fstorage_api_t * p_fs_api;
 static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
-static uint32_t m_data          = 0xBADC0FFE;
+// static uint32_t m_data          = 0xBADC0FFE;
 static uint32_t fd_memory_buffer;
 
 static uint32_t ant_id=0x00005DAD;
-static uint32_t ant_id_address =0x40000;
+uint32_t ant_id_address =0x40000;
 bool ant_id_address_found = false;
+
+
 
 
 
 NRF_FSTORAGE_DEF(nrf_fstorage_t titan_mem) =
 {
     .evt_handler = fstorage_evt_handler,
-    .start_addr = 0x40000,
-    .end_addr   = 0x40fff,
+    .start_addr = MEM_START,
+    .end_addr   = MEM_END,
 };
 
 
@@ -77,27 +83,27 @@ static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
     }
 }
 
-void mem_ant_id_write()
-{
-    ant_id_address = ant_id_address + 32;
-    ret_code_t rc = nrf_fstorage_write(
-        &titan_mem,   /* The instance to use. */
-        ant_id_address,     /* The address in flash where to store the data. */
-        &ant_id,        /* A pointer to the data. */
-        sizeof(m_data), /* Lenght of the data, in bytes. */
-        NULL            /* Optional parameter, backend-dependent. */
-    );
-    if (rc == NRF_SUCCESS)
-    {
-        /* The operation was accepted.
-        Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
-        is sent to the callback function registered by the instance. */
-    }
-    else
-    {
-        /* Handle error.*/
-    }
-}
+// void mem_ant_id_write()
+// {
+//     ant_id_address = ant_id_address + 32;
+//     ret_code_t rc = nrf_fstorage_write(
+//         &titan_mem,   /* The instance to use. */
+//         ant_id_address,     /* The address in flash where to store the data. */
+//         &ant_id,        /* A pointer to the data. */
+//         sizeof(m_data), /* Lenght of the data, in bytes. */
+//         NULL            /* Optional parameter, backend-dependent. */
+//     );
+//     if (rc == NRF_SUCCESS)
+//     {
+//         /* The operation was accepted.
+//         Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+//         is sent to the callback function registered by the instance. */
+//     }
+//     else
+//     {
+//         /* Handle error.*/
+//     }
+// }
 
 void mem_update_ant_id(uint16_t mem_ant_id)
 {
@@ -117,13 +123,19 @@ void mem_mael_triac_update(uint16_t mem_triac_offset_min, uint16_t mem_triac_off
     // NRF_LOG_INFO("triac offset max: %d",mem_triac_offset_max);
     // NRF_LOG_INFO("triac power level: %d",mem_triac_power_level);
     NRF_LOG_INFO("triac ant id: %d",mael_devicenumber);
-    // NRF_LOG_INFO("fd_mem_length: %d",sizeof(fd_memory_buffer));
+    NRF_LOG_INFO("fd_mem_length: %d",sizeof(fd_memory_buffer));
+    NRF_LOG_INFO("ant address before incre: %d",ant_id_address);
+    ant_id_address = ant_id_address + 32;
+    if(ant_id_address > MEM_END)
+    {
+        ant_id_address = MEM_START;
+        mem_ant_id_erase();
+    }
+    // nrf_delay_ms(100);
 }
 
 void mem_mael_write()
 {
-    ant_id_address = ant_id_address + 32;
-
     ret_code_t rc = nrf_fstorage_write(
         &titan_mem,   /* The instance to use. */
         ant_id_address,     /* The address in flash where to store the data. */
@@ -140,7 +152,10 @@ void mem_mael_write()
     else
     {
         /* Handle error.*/
+        NRF_LOG_INFO("ERROR in write");
     }
+
+
 }
 
 void mem_ant_id_erase()
@@ -168,46 +183,40 @@ void mem_ant_id_erase()
 void mem_ant_id_read()
 {
     uint32_t stored_number = 0; 
-    ant_id_address = 0x40000;
+    ant_id_address = MEM_START;
     ant_id_address_found = false;
     while(!ant_id_address_found)
     {
-        
-        if (stored_number != 0xFFFFFFFF)
+        if (ant_id_address < MEM_END)
         {
-            ant_id_address = ant_id_address+32;
+            stored_number = mem_read(ant_id_address);
+            if (stored_number != 0xFFFFFFFF)
+            {
+                ant_id_address = ant_id_address+32;
+            }
+            else
+            {
+                if (ant_id_address>MEM_START)
+                {
+                    ant_id_address = ant_id_address-32;
+                } else
+                {
+                    ant_id_address = MEM_START;
+                }
+                ant_id_address_found = true;
+            }
         }
         else
         {
-            ant_id_address = ant_id_address-32;
+            NRF_LOG_INFO("too high, What to do, erase everything and start again");
+            ant_id_address = MEM_START;
             ant_id_address_found = true;
+            mem_ant_id_erase();
         }
-
-        if (ant_id_address > 0x40fff)
-        {
-            NRF_LOG_INFO("too high");
-            ant_id_address_found = true;
-            ant_id_address = 0x40000;
-            break;
-        } else
-        {
-            stored_number = mem_read(ant_id_address);
-            ant_id_address_found = true;
-            ant_id_address = 0x40000;
-        }
+        NRF_LOG_INFO("final read");
+        stored_number = mem_read(ant_id_address);
     }
-
-    if(ant_id_address < 0x40fff)
-    {
-        fd_memory_buffer[0] = mem_read(ant_id_address);
-        // fd_memory_buffer[1] = mem_read(ant_id_address+32);
-        NRF_LOG_INFO("ANT ID FOUND: %d",fd_memory_buffer[0]);
-    } else
-    {
-        ant_id_address = 0x40000;
-        NRF_LOG_INFO("NO PREVIOUS");
-    }
-    
+    NRF_LOG_INFO("ANT+ ID FOUND: %d @ %d",stored_number,ant_id_address);
 }
 
 uint32_t mem_read(uint32_t addresss)

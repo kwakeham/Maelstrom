@@ -402,7 +402,8 @@ int main(void)
 
     storage_init();
     // mem_test();
-    // mem_ant_id_erase();
+    mem_ant_id_erase();
+    nrf_delay_ms(100);
     // mem_ant_id_write();
     mem_ant_id_read();
     // mem_ant_id_write();

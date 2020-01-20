@@ -347,7 +347,6 @@ void triac_settings(void)
     NRF_LOG_INFO( "offset: %u", triac_offset);
     triac_store_settings(); //store settings
     mem_mael_write();
-    mem_ant_id_read();
 }
 
 void set_triac_offset_max(void)

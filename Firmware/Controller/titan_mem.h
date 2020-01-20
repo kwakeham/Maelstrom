@@ -14,7 +14,7 @@
 #include "nrf_fstorage_sd.h"
 #include "nrf_fstorage.h"
 
-void mem_ant_id_write(void);
+// void mem_ant_id_write(void);
 
 void mem_update_ant_id(uint16_t mem_ant_id);
 
