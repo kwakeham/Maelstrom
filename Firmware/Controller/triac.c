@@ -64,6 +64,8 @@ uint16_t triac_offset = 150;
 
 bool m_triac_setting = false;
 
+
+
 void timeout_handler(void * p_context)
 {
     // nrf_drv_gpiote_out_set(BSP_LED_1);
@@ -160,6 +162,8 @@ void gpio_init(void)
 
     err_code = app_timer_start(m_bpwr_timer_id, 128, NULL);
     APP_ERROR_CHECK(err_code);
+
+    triac_retrive_settings();
 }
 
 void set_power(uint16_t bike_power)
@@ -319,6 +323,7 @@ void set_power_mode (triac_select_t t_up_down)
                 
             }
             mael_led_display(triac_power_level+1);
+            // tm_fds_test_write();
             break;
 
         case TRIAC_POWER_DOWN:
@@ -328,16 +333,17 @@ void set_power_mode (triac_select_t t_up_down)
                 triac_power_level = TRIAC_100;
             }
             mael_led_display(triac_power_level+1);
+            // tm_fds_test_delete();
             break;
 
         default:
             break;
     }
     NRF_LOG_INFO("Triac powerlevel          %u",triac_power_level);
-    triac_settings();
+    triac_settings(1);
 }
 
-void triac_settings(void)
+void triac_settings(bool store_settings)
 {
     triac_power_max = triac_power_level * 50 + 100;
     NRF_LOG_INFO("Triac Max Power        %u",triac_power_max);
@@ -345,8 +351,11 @@ void triac_settings(void)
     triac_slope = (float)((float)triac_offset_min - (float)triac_offset)/(float)(triac_power_min);
     NRF_LOG_INFO( "slope: "NRF_LOG_FLOAT_MARKER , NRF_LOG_FLOAT(triac_slope));
     NRF_LOG_INFO( "offset: %u", triac_offset);
-    triac_store_settings(); //store settings
-    mem_mael_write();
+    if (store_settings)
+    {
+        triac_store_settings();
+    }
+    
 }
 
 void set_triac_offset_max(void)
@@ -358,7 +367,7 @@ void set_triac_offset_max(void)
     }
     triac_offset_max = offset;
     NRF_LOG_INFO("triac max offset =         %d",offset);
-    triac_settings(); //update the triac settings (do the maths!)
+    triac_settings(1); //update the triac settings (do the maths!)
     mael_led_display((triac_offset_max/5)+3); //20 = 4 ~ 7,  60 = 12 ~ 15
     triac_set_setting_mode(); //Block the set_power_mode
 }
@@ -368,7 +377,7 @@ void set_triac_offset_max_reset(void)
     offset = 60;
     triac_offset_max = offset;
     NRF_LOG_INFO("triac max offset reset =         %d",offset);
-    triac_settings();
+    triac_settings(1);
     mael_led_display((triac_offset_max/5)+3); //20 = 4 ~ 7,  60 = 12 ~ 15
     triac_set_setting_mode(); //Block the set_power_mode
 }
@@ -382,7 +391,7 @@ void set_triac_offset_min(void)
     }
     triac_offset_min = offset;
     NRF_LOG_INFO("triac min offset =         %d",offset);
-    triac_settings();
+    triac_settings(1);
     mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
     triac_set_setting_mode(); //Block the set_power_mode
 
@@ -393,7 +402,7 @@ void set_triac_offset_min_reset(void)
     offset = 140;
     triac_offset_min = offset;
     NRF_LOG_INFO("triac max offset reset =         %d",offset);
-    triac_settings();
+    triac_settings(1);
     mael_led_display( (triac_offset_min/5)-21); //180 = 36 ~ 15,  140 = 28 ~ 7
     triac_set_setting_mode(); //Block the set_power_mode
     
@@ -402,6 +411,17 @@ void set_triac_offset_min_reset(void)
 void triac_store_settings(void)
 {
     mem_mael_triac_update(triac_offset_min, triac_offset_max, triac_power_level);
+}
+
+void triac_retrive_settings()
+{
+    mael_configuration_t config_data;
+    config_data = tm_fds_mael_config();
+    triac_power_level = config_data.power_setting;
+    triac_offset_max = config_data.offset_max;
+    triac_offset_min = config_data.offset_min;
+    NRF_LOG_INFO("Settings retrieved %d, %d, %d, %d:", config_data.ant_id,config_data.power_setting,config_data.offset_min, config_data.offset_max);
+    triac_settings(0);
 }
 
 

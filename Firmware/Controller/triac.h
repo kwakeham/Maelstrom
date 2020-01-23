@@ -12,6 +12,7 @@
 #include "nrf.h"
 #include "app_timer.h"
 #include "nrf_drv_gpiote.h"
+// #include "titan_mem.h"
 
 #define PIN_ZC 18 //old 11
 #define PIN_OUT 20  //old 12
@@ -20,7 +21,7 @@
 
 typedef enum
 {
-    TRIAC_100,                       //
+    TRIAC_100 = 0,                       //
     TRIAC_150,                       //
     TRIAC_200,                       //
     TRIAC_250,                       //
@@ -59,7 +60,7 @@ void triac_set_setting_mode(void);
 
 void set_power_mode (triac_select_t t_up_down);
 
-void triac_settings(void);
+void triac_settings(bool store_settings);
 
 void set_triac_offset_max(void);
 
@@ -70,5 +71,10 @@ void set_triac_offset_min(void);
 void set_triac_offset_min_reset(void);
 
 void triac_store_settings(void);
+
+void triac_retrive_settings();
+
+
+
 
 #endif

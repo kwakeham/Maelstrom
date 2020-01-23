@@ -91,11 +91,15 @@
 #ifdef SVCALL_AS_NORMAL_FUNCTION
 #define SCHED_QUEUE_SIZE                    20                                         /**< Maximum number of events in the scheduler queue. More is needed in case of Serialization. */
 #else
-#define SCHED_QUEUE_SIZE                    10                                         /**< Maximum number of events in the scheduler queue. */
+#define SCHED_QUEUE_SIZE                    20                                         /**< Maximum number of events in the scheduler queue. */
 #endif
 
 /** @snippet [ANT BPWR RX Instance] */
 void ant_bpwr_evt_handler(ant_bpwr_profile_t * p_profile, ant_bpwr_evt_t event);
+
+uint16_t bpwr_ant_id = 0;
+
+bool ant_id_recorded = 0;
 
 
 BPWR_DISP_CHANNEL_CONFIG_DEF(m_ant_bpwr,
@@ -172,6 +176,12 @@ NRF_SDH_ANT_OBSERVER(m_ant_observer, ANT_BPWR_ANT_OBSERVER_PRIO,
 void ant_bpwr_evt_handler(ant_bpwr_profile_t * p_profile, ant_bpwr_evt_t event)
 {
     nrf_pwr_mgmt_feed();
+
+    if (!ant_id_recorded)
+    {
+        triac_settings(1);
+        ant_id_recorded = 1;
+    }
 
     switch (event)
     {
@@ -282,6 +292,8 @@ static void profile_setup(void)
     err_code = ant_search_init(&bs_search_config);
     APP_ERROR_CHECK(err_code);
 
+    sd_ant_channel_id_set(BPWR_CHANNEL_NUM, bpwr_ant_id, BPWR_DEVICE_TYPE, CHAN_ID_TRANS_TYPE);
+
     err_code = ant_bpwr_disp_open(&m_ant_bpwr);
     APP_ERROR_CHECK(err_code);
 
@@ -327,6 +339,7 @@ void test_callback(maelbtn_event_t event_list)
                 sd_ant_channel_id_set(BPWR_CHANNEL_NUM, mael_devicenumber, mael_devicetype, mael_TransmitType);
                 ret_code_t err_code = ant_bpwr_disp_open(&m_ant_bpwr);
                 APP_ERROR_CHECK(err_code);
+                ant_id_recorded = 0;
                 break;
 
             case MAEL_BTN_EVENT_2:
@@ -400,25 +413,48 @@ int main(void)
     log_init();
     utils_setup();
 
-    storage_init();
+    // storage_init();
     // mem_test();
-    mem_ant_id_erase();
-    nrf_delay_ms(100);
+    // mem_ant_id_erase();
+    // nrf_delay_ms(100);
     // mem_ant_id_write();
-    mem_ant_id_read();
+    // mem_ant_id_read();
     // mem_ant_id_write();
+
+
 
     softdevice_setup();
-    profile_setup();
     scheduler_init();
-
-
-
     mael_buttons_init(test_callback);
+
+
+
+
+    gpio_init();
+
+    app_sched_execute();
+    nrf_pwr_mgmt_run();
+    
+    tm_fds_init();
+    
+    tm_fds_config_init();
+
+    mael_configuration_t _main_mael_config;
+    _main_mael_config = tm_fds_mael_config();
+    bpwr_ant_id = _main_mael_config.ant_id;
+
+    triac_retrive_settings();
+
+    profile_setup();
 
     NRF_LOG_INFO("ANT+ Bicycle Power RX example started.");
 
-    gpio_init();
+
+
+
+
+
+
 
     for (;;)
     {
