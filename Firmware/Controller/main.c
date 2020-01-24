@@ -422,11 +422,9 @@ int main(void)
     // mem_ant_id_write();
 
 
-
     softdevice_setup();
     scheduler_init();
     mael_buttons_init(test_callback);
-
 
 
 

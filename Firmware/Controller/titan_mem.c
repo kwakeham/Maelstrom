@@ -16,6 +16,8 @@
 #include "ant_interface.h"
 #include "nrf_delay.h"
 #include "fds.h"
+#include "app_scheduler.h"
+#include "nrf_pwr_mgmt.h"
 
 #define MEM_START 0x50000
 #define MEM_END 0x50fff
@@ -38,7 +40,7 @@ bool ant_id_address_found = false;
 
 
 /* Flag to check fds initialization. */
-static bool volatile m_fds_initialized;
+static bool volatile m_fds_initialized2 = false;
 
 char const * fds_err_str[] =
 {
@@ -106,6 +108,7 @@ NRF_FSTORAGE_DEF(nrf_fstorage_t titan_mem) =
     .end_addr   = MEM_END,
 };
 
+
 static void tm_fds_evt_handler(fds_evt_t const * p_evt)
 {
     NRF_LOG_INFO("Event: %s received (%s)",
@@ -117,7 +120,7 @@ static void tm_fds_evt_handler(fds_evt_t const * p_evt)
         case FDS_EVT_INIT:
             if (p_evt->result == FDS_SUCCESS)
             {
-                m_fds_initialized = true;
+                m_fds_initialized2 = true;
                 NRF_LOG_INFO("FDS initialized");
             }
             break;
@@ -148,13 +151,16 @@ static void tm_fds_evt_handler(fds_evt_t const * p_evt)
     }
 }
 
-// static void wait_for_fds_ready(void)
-// {
-//     while (!m_fds_initialized)
-//     {
-//         sd_app_evt_wait();
-//     }
-// }
+static void wait_for_fds_ready(void)
+{
+    while(!m_fds_initialized2)
+    {
+        app_sched_execute();
+        nrf_pwr_mgmt_run();
+    }
+}
+
+
 
 void tm_fds_init()
 {
@@ -172,7 +178,8 @@ void tm_fds_init()
     }
     NRF_LOG_INFO("MEM: fds initialize");
 
-    // wait_for_fds_ready();
+    wait_for_fds_ready();
+
 }
 
 void tm_fds_test_write()

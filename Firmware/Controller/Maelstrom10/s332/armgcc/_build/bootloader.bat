@@ -1,0 +1,1 @@
+nrfutil pkg generate --hw-version 52 --application-version 7 --application nrf52832_xxaa.hex --sd-req 0xBA --key-file private.key Maelstrom7.zip
