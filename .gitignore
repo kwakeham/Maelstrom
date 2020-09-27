@@ -4,3 +4,5 @@ Firmware/BIST/pca10040/s332/armgcc/_build/
 Firmware/BIST/pca10040/blank/armgcc/_build/
 Firmware/Bootloader/pca10040_ble_debug/armgcc/_build
 Firmware/Bootloader/Maelstrom10/armgcc/_build
+Firmware/Bootloader/dfu_public_key.c
+Firmware/Bootloader/private.key
