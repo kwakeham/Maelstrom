@@ -2,7 +2,7 @@ PROJECT_NAME     := ant_msg_types_master_pca10040_s332
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../nrf5_sdk
+SDK_ROOT := ../../../../../../nRF5_SDK_15.3.0_59ac345
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \

@@ -20,7 +20,7 @@
 #include "nrf_pwr_mgmt.h"
 
 #define MEM_START 0x50000
-#define MEM_END 0x50fff
+#define MEM_END 0x51fff
 #define FILE_ID         0x0001  /* The ID of the file to write the records into. */
 #define RECORD_KEY_1    0x1111  /* A key for the first record. */
 #define RECORD_KEY_2    0x2222  /* A key for the second record. */
@@ -37,6 +37,8 @@ static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
 static uint32_t ant_id=0x00005DAD;
 uint32_t ant_id_address =0x40000;
 bool ant_id_address_found = false;
+
+bool gc_flag = false;
 
 
 /* Flag to check fds initialization. */
@@ -142,6 +144,16 @@ static void tm_fds_evt_handler(fds_evt_t const * p_evt)
                 NRF_LOG_INFO("Record ID:\t0x%04x",  p_evt->del.record_id);
                 NRF_LOG_INFO("File ID:\t0x%04x",    p_evt->del.file_id);
                 NRF_LOG_INFO("Record key:\t0x%04x", p_evt->del.record_key);
+            }
+            m_delete_all.pending = false;
+        } break;
+
+        case FDS_EVT_GC:
+        {
+            if (p_evt->result == FDS_SUCCESS)
+            {
+                gc_flag = false;
+                NRF_LOG_INFO("GC successful");
             }
             m_delete_all.pending = false;
         } break;
@@ -252,6 +264,8 @@ void tm_fds_config_init()
     NRF_LOG_INFO("Found %d valid records.", stat.valid_records);
     NRF_LOG_INFO("Found %d dirty records (ready to be garbage collected).", stat.dirty_records);
 
+    tm_fds_gc();
+
     rc = fds_record_find(FILE_ID, RECORD_KEY_1, &desc, &tok);
 
     if (rc == FDS_SUCCESS)
@@ -285,11 +299,36 @@ void tm_fds_config_init()
     }
 }
 
+void tm_fds_gc()
+{
+    ret_code_t rc;
+    fds_stat_t stat = {0};
+    rc = fds_stat(&stat);
+    APP_ERROR_CHECK(rc);
+
+    if (!gc_flag)
+    {
+        if(stat.dirty_records > 60)
+        {
+            gc_flag = true;
+            fds_gc();
+            NRF_LOG_INFO("Garbage Collecting");
+        }
+        else
+        {
+            gc_flag = false;
+        }
+        
+    }
+}
+
 void tm_fds_config_update()
 {
     ret_code_t rc;
     fds_record_desc_t desc = {0};
     fds_find_token_t  tok  = {0};
+
+    tm_fds_gc();
 
     rc = fds_record_find(FILE_ID, RECORD_KEY_1, &desc, &tok);
 

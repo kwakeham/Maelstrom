@@ -34,6 +34,8 @@ mael_configuration_t tm_fds_mael_config ();
 void tm_fds_test_retrieve();
 void tm_fds_test_delete();
 
+void tm_fds_gc();
+
 void tm_fds_config_init();
 
 void tm_fds_config_update();

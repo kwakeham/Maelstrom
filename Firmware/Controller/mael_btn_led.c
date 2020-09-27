@@ -373,37 +373,37 @@ void mael_init_leds()
 void mael_test_leds()
 {
     nrf_gpio_pin_clear(LED_1R);
-    nrf_gpio_pin_clear(LED_2R);
+    nrf_gpio_pin_clear(LED_2G);
     nrf_gpio_pin_clear(LED_3R);
 
     nrf_delay_ms(500);
 
     nrf_gpio_pin_set(LED_1R);
-    nrf_gpio_pin_set(LED_2R);
+    nrf_gpio_pin_set(LED_2G);
     nrf_gpio_pin_set(LED_3R);
 
     nrf_delay_ms(500);
 
     nrf_gpio_pin_clear(LED_1G);
-    nrf_gpio_pin_clear(LED_2G);
+    nrf_gpio_pin_clear(LED_2B);
     nrf_gpio_pin_clear(LED_3G);
 
     nrf_delay_ms(500);
 
     nrf_gpio_pin_set(LED_1G);
-    nrf_gpio_pin_set(LED_2G);
+    nrf_gpio_pin_set(LED_2B);
     nrf_gpio_pin_set(LED_3G);
     
     nrf_delay_ms(500);
 
     nrf_gpio_pin_clear(LED_1B);
-    nrf_gpio_pin_clear(LED_2B);
+    nrf_gpio_pin_clear(LED_2R);
     nrf_gpio_pin_clear(LED_3B);
 
     nrf_delay_ms(500);
 
     nrf_gpio_pin_set(LED_1B);
-    nrf_gpio_pin_set(LED_2B);
+    nrf_gpio_pin_set(LED_2R);
     nrf_gpio_pin_set(LED_3B);
 
 }

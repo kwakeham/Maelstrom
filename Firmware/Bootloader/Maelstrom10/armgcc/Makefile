@@ -2,7 +2,7 @@ PROJECT_NAME     := secure_bootloader_ble_s332_pca10040
 TARGETS          := nrf52832_xxaa_s332
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../nrf5_sdk
+SDK_ROOT := ../../../../../../nRF5_SDK_15.3.0_59ac345
 PROJ_DIR := ../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa_s332.out: \
@@ -245,13 +245,19 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 # Flash the program
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf52832_xxaa_s332.hex
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/nrf52832_xxaa_s332.hex --sectorerase
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/nrf52832_xxaa_s332.hex 
 	nrfjprog -f nrf52 --reset
 
 # Flash softdevice
 flash_softdevice:
 	@echo Flashing: s332_nrf52_6.1.1_softdevice.hex
-	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s332/hex/s332_nrf52_6.1.1_softdevice.hex --sectorerase
+	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s332/hex/s332_nrf52_6.1.1_softdevice.hex 
+	nrfjprog -f nrf52 --reset
+
+#flash all
+fart_all:
+	mergehex --merge $(OUTPUT_DIRECTORY)/nrf52832_xxaa_s332.hex $(SDK_ROOT)/components/softdevice/s332/hex/s332_nrf52_6.1.1_softdevice.hex --output $(OUTPUT_DIRECTORY)/merged.hex
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/merged.hex --sectorerase
 	nrfjprog -f nrf52 --reset
 
 erase:
